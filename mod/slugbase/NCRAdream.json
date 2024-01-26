@@ -13,6 +13,11 @@
 				"story": "CD89FB"
 			}
 		],
+		
+		"expedition_enabled": true,
+		"expedition_description": "Rest well enough and you may never awaken again.",
+		
+		
 		"world_state": ["Monk"],
 
 		"alignments": {
