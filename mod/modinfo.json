@@ -1,0 +1,9 @@
+﻿{
+	"id": "author.slugcwt",
+	"name": "Slugcat CWT example",
+	"version": "0.0.0",
+	"authors": "Author",
+	"description": "A template for making SlugBase mods.",
+	"requirements": [ "slime-cubed.slugbase" ],
+	"requirements_names": [ "SlugBase" ]
+}
