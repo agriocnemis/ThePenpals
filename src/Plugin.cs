@@ -24,9 +24,42 @@ namespace NCRApenpals
             // zero-gravity oracles always
             On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
 
+            // rainbow fireflies!
+            On.FireFly.ctor += FireFly_ctor;
+            On.GreenSparks.GreenSpark.ApplyPalette += GreenSpark_ApplyPalette;
+            On.GreenSparks.GreenSpark.Update += GreenSpark_Update;
+
             //------------------------------------ REAL THINGS
             //
 
+        }
+
+        private void GreenSpark_Update(On.GreenSparks.GreenSpark.orig_Update orig, GreenSparks.GreenSpark self, bool eu)
+        {
+            if (self.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                orig(self, eu);
+            }
+            else { orig(self, eu); }
+        }
+
+        private void GreenSpark_ApplyPalette(On.GreenSparks.GreenSpark.orig_ApplyPalette orig, GreenSparks.GreenSpark self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            orig(self, sLeaser, rCam, palette);
+            if (self.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                sLeaser.sprites[0].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+            }
+        }
+
+        private void FireFly_ctor(On.FireFly.orig_ctor orig, FireFly self, Room room, Vector2 pos)
+        {
+            orig(self, room, pos);
+            if (room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+            }
         }
 
         private void SSOracleSwarmer_Update(On.SSOracleSwarmer.orig_Update orig, SSOracleSwarmer self, bool eu)

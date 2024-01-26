@@ -14,7 +14,7 @@
 			}
 		],
 		
-		"select_menu_scene": "Slugcat_Prototype",
-		"select_menu_scene_ascended": "Ghost_Prototype"
+		"select_menu_scene": "NCRAdream-select",
+		"select_menu_scene_ascended": "NCRAdream-end"
 	}
 }
