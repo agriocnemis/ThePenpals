@@ -18,7 +18,7 @@
 		"expedition_description": "Rest well enough and you may never awaken again.",
 		
 		
-		"world_state": ["Monk"],
+		"world_state": [ "NCRAdream", "Spearmaster" ],
 
 		"alignments": {
 			"Lizards": {

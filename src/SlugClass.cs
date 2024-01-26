@@ -3,8 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using BepInEx;
 using UnityEngine;
-using callingallpenpals;
-
+using NCRApenpals;
+using On;
 
 namespace callingallpenpals
 {
@@ -28,10 +28,12 @@ namespace callingallpenpals
         public class NCRAreal
         {
             public bool IsReal;
+            public bool IsRealSession;
 
             public NCRAreal()
             {
                 this.IsReal = false;
+                this.IsRealSession = false;
             }
         }
 
