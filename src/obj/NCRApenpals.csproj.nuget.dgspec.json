@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\amira\\source\\repos\\ThePenpals\\src\\NCRApenpals.csproj": {}
+    "D:\\coding things\\repo\\src\\NCRApenpals.csproj": {}
   },
   "projects": {
-    "C:\\Users\\amira\\source\\repos\\ThePenpals\\src\\NCRApenpals.csproj": {
+    "D:\\coding things\\repo\\src\\NCRApenpals.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\amira\\source\\repos\\ThePenpals\\src\\NCRApenpals.csproj",
+        "projectUniqueName": "D:\\coding things\\repo\\src\\NCRApenpals.csproj",
         "projectName": "NCRApenpals",
-        "projectPath": "C:\\Users\\amira\\source\\repos\\ThePenpals\\src\\NCRApenpals.csproj",
+        "projectPath": "D:\\coding things\\repo\\src\\NCRApenpals.csproj",
         "packagesPath": "C:\\Users\\amira\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\amira\\source\\repos\\ThePenpals\\src\\obj\\",
+        "outputPath": "D:\\coding things\\repo\\src\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\amira\\AppData\\Roaming\\NuGet\\NuGet.Config",

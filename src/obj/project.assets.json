@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\amira\\Source\\Repos\\ThePenpals\\src\\NCRApenpals.csproj",
+      "projectUniqueName": "D:\\coding things\\repo\\src\\NCRApenpals.csproj",
       "projectName": "NCRApenpals",
-      "projectPath": "C:\\Users\\amira\\Source\\Repos\\ThePenpals\\src\\NCRApenpals.csproj",
+      "projectPath": "D:\\coding things\\repo\\src\\NCRApenpals.csproj",
       "packagesPath": "C:\\Users\\amira\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\amira\\Source\\Repos\\ThePenpals\\src\\obj\\",
+      "outputPath": "D:\\coding things\\repo\\src\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\amira\\AppData\\Roaming\\NuGet\\NuGet.Config",
