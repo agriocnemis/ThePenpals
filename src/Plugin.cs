@@ -45,11 +45,24 @@ namespace NCRApenpals
             On.PoleMimicGraphics.ApplyPalette += PoleMimicGraphics_ApplyPalette;
             On.Player.StomachGlowLightColor += Player_StomachGlowLightColor;
             On.Player.Update += Player_Update;
+            On.FlyGraphics.ApplyPalette += FlyGraphics_ApplyPalette;
 
 
             //------------------------------------ REAL THINGS
             //
 
+        }
+
+        private void FlyGraphics_ApplyPalette(On.FlyGraphics.orig_ApplyPalette orig, FlyGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    sLeaser.sprites[i].color = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                }
+            }
+            else orig(self, sLeaser, rCam, palette);
         }
 
         private void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
@@ -92,7 +105,7 @@ namespace NCRApenpals
             {
                 sLeaser.sprites[0].color = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 sLeaser.sprites[1].color = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                sLeaser.sprites[2].color = UnityEngine.Color.Lerp(new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), 0.3f);
+                sLeaser.sprites[2].color = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 sLeaser.sprites[3].color = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 if (self.stick != null)
                 {
