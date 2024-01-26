@@ -7,6 +7,10 @@ using MoreSlugcats;
 using CustomRegions;
 using RWCustom;
 using On;
+using On.MoreSlugcats;
+using System;
+using IL;
+using System.Drawing.Text;
 
 namespace NCRApenpals
 {
@@ -42,9 +46,14 @@ namespace NCRApenpals
             On.DangleFruit.ApplyPalette += DangleFruit_ApplyPalette;
 
             // actual palette hell! twirls hair and cries<3
+            // water is actually evil I think rn
             On.Water.ApplyPalette += Water_ApplyPalette;
             On.WaterFall.ApplyPalette += WaterFall_ApplyPalette;
             On.WaterDrip.ApplyPalette += WaterDrip_ApplyPalette;
+
+            //Stowaway being awake, hopefully
+            //I dont want to talk about it
+            On.MoreSlugcats.StowawayBugState.AwakeThisCycle += StowAwake;
 
             // lizards be gray!
             On.LizardGraphics.DrawSprites += LizardGraphics_DrawSprites;
@@ -60,9 +69,17 @@ namespace NCRApenpals
 
         }
 
+        private bool StowAwake(On.MoreSlugcats.StowawayBugState.orig_AwakeThisCycle orig, MoreSlugcats.StowawayBugState self, int cycle)
+        {
+            throw new NotImplementedException();
+            //orig(self, cycle);
+           // return true;
+
+        }
+
         private void WaterDrip_ApplyPalette(On.WaterDrip.orig_ApplyPalette orig, WaterDrip self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.room.game.session.characterStats.name.value == "NCRreal")
+            if (self.room.game.session.characterStats.name.value == "NCRAreal")
             {
                 palette = new RoomPalette(palette.texture, palette.fogAmount, palette.darkness, Custom.Desaturate(palette.blackColor, 1f), Custom.Desaturate(palette.waterColor1, 1f),
                     Custom.Desaturate(palette.waterColor2, 1f), Custom.Desaturate(palette.waterSurfaceColor1, 1f), Custom.Desaturate(palette.waterSurfaceColor2, 1f),
@@ -93,7 +110,7 @@ namespace NCRApenpals
 
         private void WaterFall_ApplyPalette(On.WaterFall.orig_ApplyPalette orig, WaterFall self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.room.game.session.characterStats.name.value == "NCRreal")
+            if (self.room.game.session.characterStats.name.value == "NCRAreal")
             {
                 palette = new RoomPalette(palette.texture, palette.fogAmount, palette.darkness, Custom.Desaturate(palette.blackColor, 1f), Custom.Desaturate(palette.waterColor1, 1f),
                     Custom.Desaturate(palette.waterColor2, 1f), Custom.Desaturate(palette.waterSurfaceColor1, 1f), Custom.Desaturate(palette.waterSurfaceColor2, 1f),
@@ -118,6 +135,7 @@ namespace NCRApenpals
                     Custom.Desaturate(palette.waterColor2, 1f), Custom.Desaturate(palette.waterSurfaceColor1, 1f), Custom.Desaturate(palette.waterSurfaceColor2, 1f),
                     Custom.Desaturate(palette.waterShineColor, 1f), Custom.Desaturate(palette.fogColor, 1f), Custom.Desaturate(palette.skyColor, 1f),
                     palette.shortcutColors[0], palette.shortcutColors[1], palette.shortcutColors[2], palette.shortCutSymbol);
+
             }
             else
             {
@@ -158,7 +176,7 @@ namespace NCRApenpals
                 {
                     self.lizard.effectColor = Custom.HSL2RGB(0.49f, 0f, Custom.ClampedRandomVariation(0.5f, 0.15f, 0.1f));
                 }
-                else if (self.lizard.Template.type == MoreSlugcatsEnums.CreatureTemplateType.SpitLizard)
+                else if (self.lizard.Template.type == MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType.SpitLizard)
                 {
                     self.lizard.effectColor = Custom.HSL2RGB(0.1f, 0f, Custom.ClampedRandomVariation(0.55f, 0.36f, 0.2f));
                     float num8 = UnityEngine.Random.Range(0.7f, 1f);
@@ -516,6 +534,7 @@ namespace NCRApenpals
         }
 
         // the below is a weight-bearing piece of code lol
+        //emotional support code omg...
         private void LoadResources(RainWorld rainWorld)
         {
         }
