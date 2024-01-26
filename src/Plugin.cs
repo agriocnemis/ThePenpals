@@ -12,60 +12,27 @@ namespace NCRApenpals
     {
         private const string MOD_ID = "neoncityrain-agriocnemis.penpals";
 
-        public static readonly PlayerFeature<float> SuperJump = PlayerFloat("slugcwt/super_jump");
-
-
-        // Add hooks
         public void OnEnable()
         {
+            // initializing
             On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
 
-            // Put your custom hooks here!
-            On.Player.Jump += Player_Jump;
-            On.Player.CanIPickThisUp += Playering_CanPickUp;  // Name of method (right side) can be any name as you please!
-            On.Player.ctor += Abracadabra;
+            // locking and unlocking
+            On.SlugcatStats.SlugcatUnlocked += SlugcatStats_SlugcatUnlocked;
         }
 
+        private bool SlugcatStats_SlugcatUnlocked(On.SlugcatStats.orig_SlugcatUnlocked orig, SlugcatStats.Name i, RainWorld rainWorld)
+        {
+            if (i.value == "NCRAdream" || i.value == "NCRAreal")
+            {
+                return true;
+            }
+            else return orig(i, rainWorld);
+        }
 
-
-        // Load any resources, such as sprites or sounds
+        // the below is a weight-bearing piece of code lol
         private void LoadResources(RainWorld rainWorld)
         {
-        }
-
-        private void Abracadabra(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
-        {
-            orig(self, abstractCreature, world);
-            if (self.slugcatStats.name.value == "CWTCat"){
-                self.GetCat().IsYourSlugcat = true;
-            }
-        }
-
-        private bool Playering_CanPickUp(On.Player.orig_CanIPickThisUp orig, Player self, PhysicalObject obj)
-        {
-            bool canPickUp = orig(self, obj);
-
-            // Simply add creature to the list
-            if (self.GetCat().IsYourSlugcat && canPickUp && obj != null && obj is Creature){
-                self.GetCat().CreaturesYouPickedUp.Add(obj as Creature);
-            }
-
-            return canPickUp;
-        }
-
-        // Implement SuperJump
-        private void Player_Jump(On.Player.orig_Jump orig, Player self)
-        {
-            orig(self);
-
-            if (self.GetCat().IsYourSlugcat && SuperJump.TryGet(self, out var power))
-            {
-                self.jumpBoost *= 1f + power;
-
-                // Add 1 to the amount of times the player jumped with this character!
-                self.GetCat().HowManyJumps++;
-            }
-
         }
     }
 }
