@@ -10,23 +10,32 @@ namespace callingallpenpals
 {
     public static class callingallpenpals
     {
-        public class YourSlugcat
+        // dream cwt stuff!
+        public class NCRAdream
         {
-            // Define your variables to store here!
-            public int HowManyJumps;
-            public bool IsYourSlugcat;
-            public List<Creature> CreaturesYouPickedUp;
+            public bool IsDream;
 
-            public YourSlugcat(){
-                // Initialize your variables here! (Anything not added here will be null or false or 0 (default values))
-                this.HowManyJumps = 0;
-                this.IsYourSlugcat = false;
-                this.CreaturesYouPickedUp = new List<Creature>();
+            public NCRAdream(){
+                this.IsDream = false;
             }
         }
 
-        // This part lets you access the stored stuff by simply doing "self.GetCat()" in Plugin.cs or everywhere else!
-        private static readonly ConditionalWeakTable<Player, YourSlugcat> CWT = new();
-        public static YourSlugcat GetCat(this Player player) => CWT.GetValue(player, _ => new());
+        private static readonly ConditionalWeakTable<Player, NCRAdream> CWTD = new();
+        public static NCRAdream GetDreamCat(this Player player) => CWTD.GetValue(player, _ => new());
+
+
+        // present cwt stuff!
+        public class NCRAreal
+        {
+            public bool IsYourSlugcat;
+
+            public NCRAreal()
+            {
+                this.IsYourSlugcat = false;
+            }
+        }
+
+        private static readonly ConditionalWeakTable<Player, NCRAreal> CWTR = new();
+        public static NCRAreal GetPresentCat(this Player player) => CWTR.GetValue(player, _ => new());
     }
 }
