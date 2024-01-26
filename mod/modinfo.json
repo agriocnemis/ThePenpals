@@ -1,9 +1,9 @@
 ﻿{
-	"id": "author.slugcwt",
-	"name": "Slugcat CWT example",
+	"id": "neoncityrain-agriocnemis.NCRApenpals",
+	"name": "Penpals",
 	"version": "0.0.0",
-	"authors": "Author",
+	"authors": "NeonCityRain, Agriocnemis",
 	"description": "A template for making SlugBase mods.",
-	"requirements": [ "slime-cubed.slugbase" ],
-	"requirements_names": [ "SlugBase" ]
+	"requirements": [ "slime-cubed.slugbase", "crs", "regionkit" ],
+	"requirements_names": [ "SlugBase", "CRS", "RegionKit" ]
 }
