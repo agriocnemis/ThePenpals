@@ -27,11 +27,11 @@ namespace callingallpenpals
         // present cwt stuff!
         public class NCRAreal
         {
-            public bool IsYourSlugcat;
+            public bool IsReal;
 
             public NCRAreal()
             {
-                this.IsYourSlugcat = false;
+                this.IsReal = false;
             }
         }
 
