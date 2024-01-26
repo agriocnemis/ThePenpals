@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\coding things\\repo\\src\\NCRApenpals.csproj": {}
+    "C:\\Users\\tongu\\3D Objects\\ThePenpals\\src\\NCRApenpals.csproj": {}
   },
   "projects": {
-    "D:\\coding things\\repo\\src\\NCRApenpals.csproj": {
+    "C:\\Users\\tongu\\3D Objects\\ThePenpals\\src\\NCRApenpals.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\coding things\\repo\\src\\NCRApenpals.csproj",
+        "projectUniqueName": "C:\\Users\\tongu\\3D Objects\\ThePenpals\\src\\NCRApenpals.csproj",
         "projectName": "NCRApenpals",
-        "projectPath": "D:\\coding things\\repo\\src\\NCRApenpals.csproj",
-        "packagesPath": "C:\\Users\\amira\\.nuget\\packages\\",
-        "outputPath": "D:\\coding things\\repo\\src\\obj\\",
+        "projectPath": "C:\\Users\\tongu\\3D Objects\\ThePenpals\\src\\NCRApenpals.csproj",
+        "packagesPath": "C:\\Users\\tongu\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\tongu\\3D Objects\\ThePenpals\\src\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\amira\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\tongu\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -39,7 +39,7 @@
       "frameworks": {
         "net48": {
           "targetAlias": "net48",
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.202\\RuntimeIdentifierGraph.json"
         }
       }
     }

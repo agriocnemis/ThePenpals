@@ -71,8 +71,7 @@ namespace NCRApenpals
 
         private bool StowAwake(On.MoreSlugcats.StowawayBugState.orig_AwakeThisCycle orig, MoreSlugcats.StowawayBugState self, int cycle)
         {
-            throw new NotImplementedException();
-            //orig(self, cycle);
+            return orig(self, cycle);
            // return true;
 
         }
