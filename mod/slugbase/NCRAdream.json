@@ -13,6 +13,18 @@
 				"story": "CD89FB"
 			}
 		],
+		"world_state": ["Monk"],
+
+		"alignments": {
+			"Lizards": {
+				"like": 1,
+				"strength": 1
+			},
+			"Scavengers": {
+				"like": 1,
+				"strength": 1
+			}
+		},
 		
 		"select_menu_scene": "NCRAdream-select",
 		"select_menu_scene_ascended": "NCRAdream-end"

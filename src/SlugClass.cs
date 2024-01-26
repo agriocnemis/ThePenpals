@@ -36,6 +36,6 @@ namespace callingallpenpals
         }
 
         private static readonly ConditionalWeakTable<Player, NCRAreal> CWTR = new();
-        public static NCRAreal GetPresentCat(this Player player) => CWTR.GetValue(player, _ => new());
+        public static NCRAreal GetRealCat(this Player player) => CWTR.GetValue(player, _ => new());
     }
 }

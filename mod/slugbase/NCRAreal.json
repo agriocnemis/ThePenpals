@@ -13,6 +13,7 @@
 				"story": "F5D4C2"
 			}
 		],
+		"world_state": ["Monk"],
 		
 		"select_menu_scene": "NCRAreal-select",
 		"select_menu_scene_ascended": "NCRAreal-end"
