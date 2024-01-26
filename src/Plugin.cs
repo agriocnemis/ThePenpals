@@ -19,6 +19,23 @@ namespace NCRApenpals
 
             // locking and unlocking
             On.SlugcatStats.SlugcatUnlocked += SlugcatStats_SlugcatUnlocked;
+
+            // ----------------------------------- DREAM THINGS
+            // zero-gravity oracles always
+            On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
+
+            //------------------------------------ REAL THINGS
+            //
+
+        }
+
+        private void SSOracleSwarmer_Update(On.SSOracleSwarmer.orig_Update orig, SSOracleSwarmer self, bool eu)
+        {
+            orig(self, eu);
+            if (self.room.game.session.characterStats.name.value == "NCRAdream" && self.room.readyForAI)
+            {
+                self.affectedByGravity = 0f;
+            }
         }
 
         private bool SlugcatStats_SlugcatUnlocked(On.SlugcatStats.orig_SlugcatUnlocked orig, SlugcatStats.Name i, RainWorld rainWorld)

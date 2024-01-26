@@ -1,10 +1,18 @@
 {
-	"id": "CWTCat",
-	"name": "Slugcat demonstrating CWT usage",
-	"description": "This is to show how to store values in CWT so it's stored per PLAYER and can be used anywhere in the plugin!",
+	"id": "NCRAreal",
+	"name": "REAL",
+	"description": "bro i hate my 9 to 5",
 	"features": {
-		"color": "9cf0a4",
-		"slugcwt/super_jump": 0.5,
+		"custom_colors": [
+			{
+				"name": "Body",
+				"story": "643F3F"
+			},
+			{
+				"name": "Eyes",
+				"story": "F5D4C2"
+			}
+		],
 		
 		"select_menu_scene": "Slugcat_Prototype",
 		"select_menu_scene_ascended": "Ghost_Prototype"
