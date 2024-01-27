@@ -40,7 +40,8 @@ namespace NCRApenpals
             // water bouyancy, dream gravity
             On.Player.UpdateMSC += Player_UpdateMSC;
 
-
+            // lizards kill more / less often
+            On.Player.DeathByBiteMultiplier += Player_DeathByBiteMultiplier;
 
             // awaken or comatose stowaways!
             On.MoreSlugcats.StowawayBugState.AwakeThisCycle += StowAwake;
@@ -51,10 +52,6 @@ namespace NCRApenpals
             // ----------------------------------- DREAM THINGS
             // zero-gravity oracles always
             On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
-
-            // low-grav thrown objects
-            On.Player.ThrowObject += Player_ThrowObject;
-
 
             // making dream colourful
             On.FireFly.ctor += FireFly_ctor;
@@ -75,7 +72,32 @@ namespace NCRApenpals
             // omg so real
 
 
+        }
 
+        private float Player_DeathByBiteMultiplier(On.Player.orig_DeathByBiteMultiplier orig, Player self)
+        {
+            if (self.room != null && self.room.game.IsStorySession && self.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                if (IsNightmare)
+                {
+                    // bites usually kill
+                    return 0.9f + self.room.game.GetStorySession.difficulty / 5f;
+                }
+                else
+                {
+                    // bites never kill (smth smth "cant die in dreams" rumor)
+                    return 0f;
+                }
+            }
+            else if (self.room != null && self.room.game.IsStorySession && self.room.game.session.characterStats.name.value == "NCRAreal")
+            {
+                // bites kill just a little bit more than usual
+                return 0.75f + self.room.game.GetStorySession.difficulty / 5f;
+            }
+            else
+            {
+                return orig(self);
+            }
         }
 
         private void PoleMimicGraphics_DrawSprites(On.PoleMimicGraphics.orig_DrawSprites orig, PoleMimicGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -152,15 +174,6 @@ namespace NCRApenpals
             }
             else return orig(self, cycle);
 
-        }
-
-        private void Player_ThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
-        {
-            orig(self, grasp, eu);
-            if (self.GetDreamCat().IsDream && !(self.grasps[grasp].grabbed is Spear))
-            {
-                self.grasps[grasp].grabbed.gravity = 0.25f;
-            }
         }
 
         private void DangleFruit_ApplyPalette(On.DangleFruit.orig_ApplyPalette orig, DangleFruit self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
