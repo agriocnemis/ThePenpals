@@ -13,12 +13,7 @@
 				"story": "CD89FB"
 			}
 		],
-		
-		"expedition_enabled": true,
-		"expedition_description": "Rest well enough and you may never awaken again.",
-		
-		
-		"world_state": [ "NCRAdream", "Spearmaster" ],
+		"world_state": [ "NCRAdream", "Spear" ],
 
 		"alignments": {
 			"Lizards": {
@@ -32,6 +27,7 @@
 		},
 		
 		"select_menu_scene": "NCRAdream-select",
-		"select_menu_scene_ascended": "NCRAdream-end"
+		"select_menu_scene_ascended": "NCRAdream-end",
+		"sleep_scene": "NCRAdream-sleep"
 	}
 }

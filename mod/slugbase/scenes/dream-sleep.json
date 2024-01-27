@@ -1,0 +1,13 @@
+{
+	"id": "NCRAdream-sleep",
+	"scene_folder": "scenes/sleep",
+	"images": [
+		{"name": "dreamcoolsymbolthing", "pos": [672, 236], "depth": 5.5, "shader": "Basic"},
+		{"name": "dreambackgrass2", "pos": [685, 173], "depth": 4.8, "shader": "Basic"},
+		{"name": "dreambackgrass1", "pos": [740, 158], "depth": 4, "shader": "Basic"},
+		{"name": "dreamsleep", "pos": [758, 90], "depth": 3, "shader": "Basic"},
+		{"name": "dreamfrontgrass", "pos": [498, -94], "depth": 1.8, "shader": "Basic"}
+	],
+	"idle_depths": [2.9],
+	"sleep scene_depth": 3.0
+}

@@ -13,14 +13,10 @@
 				"story": "F5D4C2"
 			}
 		],
-		
-		"expedition_enabled": true,
-		"expedition_description": "Is sleep truly obtainable in this place?",
-		
-		
-		"world_state": [ "NCRAreal", "Spearmaster" ],
+		"world_state": [ "NCRAreal", "Spear" ],
 		
 		"select_menu_scene": "NCRAreal-select",
-		"select_menu_scene_ascended": "NCRAreal-end"
+		"select_menu_scene_ascended": "NCRAreal-end",
+		"sleep_scene": "NCRAreal-sleep"
 	}
 }
