@@ -261,7 +261,7 @@ namespace NCRApenpals
         private void Player_UpdateMSC(On.Player.orig_UpdateMSC orig, Player self)
         {
             orig(self);
-            if (self.GetDreamCat().IsDream)
+            if (self.GetDreamCat().IsDream && self.room.gravity <= 0.55f)
             {
                 self.buoyancy = 0.95f;
                 self.customPlayerGravity = 0.35f;
