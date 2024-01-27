@@ -11,6 +11,12 @@ using On.MoreSlugcats;
 using System;
 using IL;
 using System.Drawing.Text;
+using System.Reflection;
+using AssetBundles;
+using AssemblyCSharp;
+using NCRApenpals.GrayscaleEffect;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace NCRApenpals
 {
@@ -18,6 +24,8 @@ namespace NCRApenpals
     class Plugin : BaseUnityPlugin
     {
         private const string MOD_ID = "neoncityrain-agriocnemis.penpals";
+        FAtlas atlas;
+        private static ConditionalWeakTable<RoomCamera, FSprite> _cwt = new();
 
         public void OnEnable()
         {
@@ -32,7 +40,7 @@ namespace NCRApenpals
             On.Player.UpdateMSC += Player_UpdateMSC;
 
 
-            // general colour things- making dream colourful, making real shades of grey
+            // general colour things- making dream colourful
             On.FireFly.ctor += FireFly_ctor;
             On.GreenSparks.GreenSpark.ApplyPalette += GreenSpark_ApplyPalette;
             On.GreenSparks.GreenSpark.Update += GreenSpark_Update;
@@ -53,11 +61,21 @@ namespace NCRApenpals
             // zero-gravity oracles always
             On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
 
+            On.Player.ThrowObject += Player_ThrowObject;
+
             //------------------------------------ REAL THINGS
             // omg so real
             // desaturate all rooms
-            On.RoomCamera.Update += RoomCamera_Update;
 
+        }
+
+        private void Player_ThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
+        {
+            orig(self, grasp, eu);
+            if (self.GetDreamCat().IsDream && !(self.grasps[grasp].grabbed is Spear))
+            {
+                self.grasps[grasp].grabbed.gravity = 0.3f;
+            }
         }
 
         private bool StowAwake(On.MoreSlugcats.StowawayBugState.orig_AwakeThisCycle orig, MoreSlugcats.StowawayBugState self, int cycle)
@@ -115,15 +133,6 @@ namespace NCRApenpals
             else
             {
                 orig.Invoke(self, sLeaser, rCam, palette);
-            }
-        }
-
-        private void RoomCamera_Update(On.RoomCamera.orig_Update orig, RoomCamera self)
-        {
-            orig(self);
-            if (self.room.game.session.characterStats.name.value == "NCRAreal" && self.effect_desaturation != 1f)
-            {
-                self.effect_desaturation = 1f;
             }
         }
 
@@ -244,7 +253,7 @@ namespace NCRApenpals
             orig(self);
             if (self.GetDreamCat().IsDream)
             {
-                self.buoyancy = 0.96f;
+                self.buoyancy = 0.95f;
                 self.customPlayerGravity = 0.35f;
             }
             else if (self.GetRealCat().IsReal)
@@ -276,15 +285,12 @@ namespace NCRApenpals
             {
                 self.GetRealCat().IsReal = true;
 
-                // this is here for intro purposes :]
-                //if (self.room.game.session is StoryGameSession && self.room.game.session.characterStats.name.value == "NCRAreal")
-                //{
-                //string name = self.room.abstractRoom.name;
-                //if (name == "SB_L01")
-                //{
-                //self.room.AddObject(new EntropyIntro(self.room));
-                //}
-                //}
+                if (self.room.game.session is StoryGameSession && self.room.game.session.characterStats.name.value == "NCRAreal")
+                {
+                    if (name == "SU_C04")
+                    {
+                    }
+                }
             }
         }
 
@@ -334,10 +340,11 @@ namespace NCRApenpals
             else return orig(i, rainWorld);
         }
 
-        // the below is a weight-bearing piece of code lol
-        //emotional support code omg...
         private void LoadResources(RainWorld rainWorld)
         {
+            var bundle = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("NCRApenpals.Assets.grayscalegrab"));
+            Custom.rainWorld.Shaders["VigaroGrayscaleGrab"] = FShader.CreateShader("VigaroGrayscaleGrab", bundle.LoadAsset<Shader>("Assets/GrayscaleGrab.shader"));
+            bundle.Unload(false);
         }
     }
 }

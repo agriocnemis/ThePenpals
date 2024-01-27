@@ -11,6 +11,14 @@
         </Reference>
     </ItemGroup>
     
+    <ItemGroup>
+      <None Remove="grayscalegrab" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <EmbeddedResource Include="grayscalegrab" />
+    </ItemGroup>
+    
     <Target Name="GenerateMod" AfterTargets="PostBuildEvent">
 		<ItemGroup>
 			<RemovePlugins Include="../mod/plugins/*.dll" />
