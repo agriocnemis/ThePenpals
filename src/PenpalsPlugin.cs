@@ -41,18 +41,6 @@ namespace NCRApenpals
             On.Player.UpdateMSC += Player_UpdateMSC;
 
 
-            // general colour things- making dream colourful
-            On.FireFly.ctor += FireFly_ctor;
-            On.GreenSparks.GreenSpark.ApplyPalette += GreenSpark_ApplyPalette;
-            On.GreenSparks.GreenSpark.Update += GreenSpark_Update;
-            On.SeedCob.ApplyPalette += SeedCob_ApplyPalette;
-            On.Lantern.TerrainImpact += Lantern_TerrainImpact;
-            On.FlyLure.ApplyPalette += FlyLure_ApplyPalette;
-            On.PoleMimicGraphics.ApplyPalette += PoleMimicGraphics_ApplyPalette;
-            On.FlyGraphics.ApplyPalette += FlyGraphics_ApplyPalette;
-            On.Lantern.ApplyPalette += Lantern_ApplyPalette;
-            On.Lantern.Update += Lantern_Update;
-            On.DangleFruit.ApplyPalette += DangleFruit_ApplyPalette;
 
             // awaken or comatose stowaways!
             On.MoreSlugcats.StowawayBugState.AwakeThisCycle += StowAwake;
@@ -67,11 +55,68 @@ namespace NCRApenpals
             // low-grav thrown objects
             On.Player.ThrowObject += Player_ThrowObject;
 
+
+            // making dream colourful
+            On.FireFly.ctor += FireFly_ctor;
+            On.GreenSparks.GreenSpark.ApplyPalette += GreenSpark_ApplyPalette;
+            On.GreenSparks.GreenSpark.Update += GreenSpark_Update;
+            On.SeedCob.ApplyPalette += SeedCob_ApplyPalette;
+            On.Lantern.TerrainImpact += Lantern_TerrainImpact;
+            On.FlyLure.ApplyPalette += FlyLure_ApplyPalette;
+            On.PoleMimicGraphics.ApplyPalette += PoleMimicGraphics_ApplyPalette;
+            On.FlyGraphics.ApplyPalette += FlyGraphics_ApplyPalette;
+            On.Lantern.ApplyPalette += Lantern_ApplyPalette;
+            On.Lantern.Update += Lantern_Update;
+            On.DangleFruit.ApplyPalette += DangleFruit_ApplyPalette;
+            On.TentaclePlantGraphics.ApplyPalette += TentaclePlantGraphics_ApplyPalette;
+            On.PoleMimicGraphics.DrawSprites += PoleMimicGraphics_DrawSprites;
+
             //------------------------------------ REAL THINGS
             // omg so real
-            
 
 
+
+        }
+
+        private void PoleMimicGraphics_DrawSprites(On.PoleMimicGraphics.orig_DrawSprites orig, PoleMimicGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            orig(self, sLeaser, rCam, timeStacker, camPos);
+            if (self.owner.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.owner.abstractPhysicalObject.ID.RandomSeed);
+                for (int i = 0; i < self.leafPairs; i++)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        
+                        if (i < self.decoratedLeafPairs)
+                        {
+                            sLeaser.sprites[self.LeafDecorationSprite(i, j)].color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), Mathf.Pow(Mathf.InverseLerp((float)(self.decoratedLeafPairs / 2), (float)self.decoratedLeafPairs, (float)i), 0.6f));
+                        }
+                    }
+                }
+                UnityEngine.Random.state = state;
+            }
+        }
+
+        private void TentaclePlantGraphics_ApplyPalette(On.TentaclePlantGraphics.orig_ApplyPalette orig, TentaclePlantGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.owner.abstractPhysicalObject.ID.RandomSeed);
+                sLeaser.sprites[0].color = palette.blackColor;
+                for (int i = 0; i < self.danglers.Length; i++)
+                {
+                    sLeaser.sprites[i + 1].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                }
+                UnityEngine.Random.state = state;
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
         }
 
         private void PlayerGraphics_ctor(On.PlayerGraphics.orig_ctor orig, PlayerGraphics self, PhysicalObject ow)
@@ -153,19 +198,22 @@ namespace NCRApenpals
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
-                sLeaser.sprites[0].color = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                sLeaser.sprites[1].color = new UnityEngine.Color(1f, 1f, 1f);
-                sLeaser.sprites[2].color = UnityEngine.Color.Lerp(new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), new UnityEngine.Color(1f, 1f, 1f), 0.3f);
-                sLeaser.sprites[3].color = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+
+                sLeaser.sprites[0].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                sLeaser.sprites[1].color = new Color(1f, 1f, 1f);
+                sLeaser.sprites[2].color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
+                    new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), 0.3f);
+                sLeaser.sprites[3].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 if (self.stick != null)
                 {
                     sLeaser.sprites[4].color = palette.blackColor;
                 }
+
                 UnityEngine.Random.state = state;
             }
             else
             {
-                orig.Invoke(self, sLeaser, rCam, palette);
+                orig(self, sLeaser, rCam, palette);
             }
         }
 
@@ -190,8 +238,16 @@ namespace NCRApenpals
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
-                self.mimicColor = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 self.blackColor = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                self.mimicColor = new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                UnityEngine.Random.state = state;
+            }
+            else if (self.owner.room.game.session.characterStats.name.value == "NCRAdream" && IsNightmare)
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
+                self.blackColor = palette.blackColor;
+                self.mimicColor = new Color(0.01f, 0.01f, 0.01f);
                 UnityEngine.Random.state = state;
             }
             else
@@ -284,8 +340,9 @@ namespace NCRApenpals
         private void Player_UpdateMSC(On.Player.orig_UpdateMSC orig, Player self)
         {
             orig(self);
-            if (self.GetDreamCat().IsDream && self.room.gravity >= 0.55f)
+            if (self.GetDreamCat().IsDream && self.room.gravity >= 0.55f && !self.submerged)
             {
+                self.buoyancy = 0.96f;
                 self.customPlayerGravity = 0.35f;
             }
             else if (self.GetRealCat().IsReal)
