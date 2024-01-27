@@ -54,14 +54,17 @@ namespace NCRApenpals
             On.Lantern.Update += Lantern_Update;
             On.DangleFruit.ApplyPalette += DangleFruit_ApplyPalette;
 
-            //Stowaway being awake, hopefully
-            //I dont want to talk about it
+            // awaken or comatose stowaways!
             On.MoreSlugcats.StowawayBugState.AwakeThisCycle += StowAwake;
+
+            // TAIL EDITS
+            On.PlayerGraphics.ctor += PlayerGraphics_ctor;
 
             // ----------------------------------- DREAM THINGS
             // zero-gravity oracles always
             On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
 
+            // low-grav thrown objects
             On.Player.ThrowObject += Player_ThrowObject;
 
             //------------------------------------ REAL THINGS
@@ -69,6 +72,25 @@ namespace NCRApenpals
             
 
 
+        }
+
+        private void PlayerGraphics_ctor(On.PlayerGraphics.orig_ctor orig, PlayerGraphics self, PhysicalObject ow)
+        {
+            orig(self, ow);
+            if ((self.owner as Player).GetDreamCat().IsDream)
+            {
+                self.tail[0] = new TailSegment(self, 6f, 4.5f, null, 0.85f, 1f, 1f, true);
+                self.tail[1] = new TailSegment(self, 4f, 7.5f, self.tail[0], 0.85f, 0.45f, 0.5f, true);
+                self.tail[2] = new TailSegment(self, 3f, 7f, self.tail[1], 0.85f, 0.4f, 0.5f, true);
+                self.tail[3] = new TailSegment(self, 9f, 7f, self.tail[2], 0.85f, 0.4f, 0.5f, true);
+            }
+            else if ((self.owner as Player).GetRealCat().IsReal)
+            {
+                self.tail[0] = new TailSegment(self, 6f, 4f, null, 0.85f, 1f, 1f, true);
+                self.tail[1] = new TailSegment(self, 4f, 7f, self.tail[0], 0.85f, 0.45f, 0.5f, true);
+                self.tail[2] = new TailSegment(self, 2.5f, 4.5f, self.tail[1], 0.85f, 0.4f, 0.5f, true);
+                self.tail[3] = new TailSegment(self, 1f, 3.5f, self.tail[2], 0.85f, 0.4f, 0.5f, true);
+            }
         }
 
         private bool StowAwake(On.MoreSlugcats.StowawayBugState.orig_AwakeThisCycle orig, MoreSlugcats.StowawayBugState self, int cycle)
@@ -92,7 +114,7 @@ namespace NCRApenpals
             orig(self, grasp, eu);
             if (self.GetDreamCat().IsDream && !(self.grasps[grasp].grabbed is Spear))
             {
-                self.grasps[grasp].grabbed.gravity = 0.3f;
+                self.grasps[grasp].grabbed.gravity = 0.25f;
             }
         }
 
@@ -262,9 +284,8 @@ namespace NCRApenpals
         private void Player_UpdateMSC(On.Player.orig_UpdateMSC orig, Player self)
         {
             orig(self);
-            if (self.GetDreamCat().IsDream && self.room.gravity <= 0.55f)
+            if (self.GetDreamCat().IsDream && self.room.gravity >= 0.55f)
             {
-                self.buoyancy = 0.95f;
                 self.customPlayerGravity = 0.35f;
             }
             else if (self.GetRealCat().IsReal)
