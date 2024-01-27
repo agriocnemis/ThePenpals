@@ -14,7 +14,6 @@ using System.Drawing.Text;
 using System.Reflection;
 using AssetBundles;
 using AssemblyCSharp;
-using NCRApenpals.GrayscaleEffect;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -25,7 +24,9 @@ namespace NCRApenpals
     {
         private const string MOD_ID = "neoncityrain-agriocnemis.penpals";
         FAtlas atlas;
-        private static ConditionalWeakTable<RoomCamera, FSprite> _cwt = new();
+        
+        public bool IsNightmare;
+
 
         public void OnEnable()
         {
@@ -69,6 +70,22 @@ namespace NCRApenpals
 
         }
 
+        private bool StowAwake(On.MoreSlugcats.StowawayBugState.orig_AwakeThisCycle orig, MoreSlugcats.StowawayBugState self, int cycle)
+        {
+            if (self.creature.world.game.session.characterStats.name.value == "NCRAreal" || IsNightmare)
+            {
+                Debug.Log("Stowaway forced awake by NCRAreal game or altdream");
+                return true;
+            }
+            else if (self.creature.world.game.session.characterStats.name.value == "NCRAdream")
+            {
+                Debug.Log("NCRAdream game! Stowaway asleep");
+                return false;
+            }
+            else return orig(self, cycle);
+
+        }
+
         private void Player_ThrowObject(On.Player.orig_ThrowObject orig, Player self, int grasp, bool eu)
         {
             orig(self, grasp, eu);
@@ -76,13 +93,6 @@ namespace NCRApenpals
             {
                 self.grasps[grasp].grabbed.gravity = 0.3f;
             }
-        }
-
-        private bool StowAwake(On.MoreSlugcats.StowawayBugState.orig_AwakeThisCycle orig, MoreSlugcats.StowawayBugState self, int cycle)
-        {
-            return orig(self, cycle);
-           // return true;
-
         }
 
         private void DangleFruit_ApplyPalette(On.DangleFruit.orig_ApplyPalette orig, DangleFruit self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -100,7 +110,7 @@ namespace NCRApenpals
 
         private void Lantern_Update(On.Lantern.orig_Update orig, Lantern self, bool eu)
         {
-            if ((self.room.game.session.characterStats.name.value == "NCRAdream") && self.lightSource == null)
+            if ((self.room.game.session.characterStats.name.value == "NCRAdream") && self.lightSource == null && !IsNightmare)
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
@@ -116,7 +126,7 @@ namespace NCRApenpals
 
         private void Lantern_ApplyPalette(On.Lantern.orig_ApplyPalette orig, Lantern self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.room.game.session.characterStats.name.value == "NCRAdream")
+            if (self.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
@@ -138,7 +148,7 @@ namespace NCRApenpals
 
         private void FlyGraphics_ApplyPalette(On.FlyGraphics.orig_ApplyPalette orig, FlyGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            if (self.owner.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.fly.abstractCreature.ID.RandomSeed);
@@ -153,7 +163,7 @@ namespace NCRApenpals
 
         private void PoleMimicGraphics_ApplyPalette(On.PoleMimicGraphics.orig_ApplyPalette orig, PoleMimicGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            if (self.owner.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
@@ -169,7 +179,7 @@ namespace NCRApenpals
 
         private void FlyLure_ApplyPalette(On.FlyLure.orig_ApplyPalette orig, FlyLure self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.room.game.session.characterStats.name.value == "NCRAdream")
+            if (self.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
             {
                 self.color = UnityEngine.Color.Lerp(new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), palette.fogColor, UnityEngine.Random.value);
                 self.UpdateColor(sLeaser, false);
@@ -183,7 +193,7 @@ namespace NCRApenpals
 
         private void Lantern_TerrainImpact(On.Lantern.orig_TerrainImpact orig, Lantern self, int chunk, RWCustom.IntVector2 direction, float speed, bool firstContact)
         {
-            if (speed > 5f && firstContact && (self.room.game.session.characterStats.name.value == "NCRAdream"))
+            if (speed > 5f && firstContact && (self.room.game.session.characterStats.name.value == "NCRAdream") && !IsNightmare)
             {
                 Vector2 pos = self.bodyChunks[chunk].pos + direction.ToVector2() * self.bodyChunks[chunk].rad * 0.9f;
                 int num = 0;
@@ -201,7 +211,7 @@ namespace NCRApenpals
 
         private void SeedCob_ApplyPalette(On.SeedCob.orig_ApplyPalette orig, SeedCob self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.room.game.session.characterStats.name.value == "NCRAdream")
+            if (self.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
@@ -273,11 +283,11 @@ namespace NCRApenpals
                 // this is here for intro purposes :]
                 //if (self.room.game.session is StoryGameSession && self.room.game.session.characterStats.name.value == "NCRAdream")
                 //{
-                    //string name = self.room.abstractRoom.name;
-                    //if (name == "SB_L01")
-                    //{
-                        //self.room.AddObject(new EntropyIntro(self.room));
-                    //}
+                //string name = self.room.abstractRoom.name;
+                //if (name == "SB_L01")
+                //{
+                //self.room.AddObject(new EntropyIntro(self.room));
+                //}
                 //}
             }
             // ---------------------------------------------------- REAL ----------------------------------------------------
@@ -287,16 +297,14 @@ namespace NCRApenpals
 
                 if (self.room.game.session is StoryGameSession && self.room.game.session.characterStats.name.value == "NCRAreal")
                 {
-                    if (name == "SU_C04")
-                    {
-                    }
+                    
                 }
             }
         }
 
         private void GreenSpark_Update(On.GreenSparks.GreenSpark.orig_Update orig, GreenSparks.GreenSpark self, bool eu)
         {
-            if (self.room.game.session.characterStats.name.value == "NCRAdream")
+            if (self.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
             {
                 self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 orig(self, eu);
@@ -307,7 +315,7 @@ namespace NCRApenpals
         private void GreenSpark_ApplyPalette(On.GreenSparks.GreenSpark.orig_ApplyPalette orig, GreenSparks.GreenSpark self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
             orig(self, sLeaser, rCam, palette);
-            if (self.room.game.session.characterStats.name.value == "NCRAdream")
+            if (self.room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
             {
                 sLeaser.sprites[0].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
             }
@@ -316,7 +324,7 @@ namespace NCRApenpals
         private void FireFly_ctor(On.FireFly.orig_ctor orig, FireFly self, Room room, Vector2 pos)
         {
             orig(self, room, pos);
-            if (room.game.session.characterStats.name.value == "NCRAdream")
+            if (room.game.session.characterStats.name.value == "NCRAdream" && !IsNightmare)
             {
                 self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
             }
@@ -342,9 +350,7 @@ namespace NCRApenpals
 
         private void LoadResources(RainWorld rainWorld)
         {
-            var bundle = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("NCRApenpals.Assets.grayscalegrab"));
-            Custom.rainWorld.Shaders["VigaroGrayscaleGrab"] = FShader.CreateShader("VigaroGrayscaleGrab", bundle.LoadAsset<Shader>("Assets/GrayscaleGrab.shader"));
-            bundle.Unload(false);
+
         }
     }
 }
