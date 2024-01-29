@@ -14,6 +14,7 @@
 			}
 		],
 		"world_state": [ "NCRAdream", "Spear" ],
+		"auto_grab_batflies": false,
 
 		"alignments": {
 			"Lizards": {

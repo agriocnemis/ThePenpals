@@ -14,6 +14,7 @@
 			}
 		],
 		"world_state": [ "NCRAreal", "Spear" ],
+		"auto_grab_batflies": false,
 		
 		"select_menu_scene": "NCRAreal-select",
 		"select_menu_scene_ascended": "NCRAreal-end",

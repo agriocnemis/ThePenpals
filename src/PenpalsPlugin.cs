@@ -71,7 +71,36 @@ namespace NCRApenpals
             //------------------------------------ REAL THINGS
             // omg so real
 
+            // rain does not become mayhem (instakill), but always has precycles
+            On.GlobalRain.DeathRain.NextDeathRainMode += DeathRain_NextDeathRainMode;
+        }
 
+        private void DeathRain_NextDeathRainMode(On.GlobalRain.DeathRain.orig_NextDeathRainMode orig, GlobalRain.DeathRain self)
+        {
+            if (self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal"
+                && self.deathRainMode == MoreSlugcats.MoreSlugcatsEnums.DeathRainMode.Pulses)
+            {
+                self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp;
+            }
+            else if (self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal"
+                && self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp)
+            {
+                self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeBPlateu;
+            }
+            else if (self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal"
+                && self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBPlateu)
+            {
+                self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.FinalBuildUp;
+            }
+            else if (self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal"
+                && self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.FinalBuildUp)
+            {
+                self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeABuildUp;
+            }
+            else
+            {
+                orig(self);
+            }
         }
 
         private float Player_DeathByBiteMultiplier(On.Player.orig_DeathByBiteMultiplier orig, Player self)
@@ -154,9 +183,9 @@ namespace NCRApenpals
             else if ((self.owner as Player).GetRealCat().IsReal)
             {
                 self.tail[0] = new TailSegment(self, 6f, 4f, null, 0.85f, 1f, 1f, true);
-                self.tail[1] = new TailSegment(self, 4f, 7f, self.tail[0], 0.85f, 0.45f, 0.5f, true);
-                self.tail[2] = new TailSegment(self, 2.5f, 4.5f, self.tail[1], 0.85f, 0.4f, 0.5f, true);
-                self.tail[3] = new TailSegment(self, 1f, 3.5f, self.tail[2], 0.85f, 0.4f, 0.5f, true);
+                self.tail[1] = new TailSegment(self, 4f, 7f, self.tail[0], 0.85f, 1f, 0.5f, true);
+                self.tail[2] = new TailSegment(self, 2.5f, 4.5f, self.tail[1], 0.85f, 1f, 0.5f, true);
+                self.tail[3] = new TailSegment(self, 1f, 3.5f, self.tail[2], 0.85f, 1f, 0.5f, true);
             }
         }
 
