@@ -1,0 +1,13 @@
+Template: NONE
+DangerType: None
+CeilingDrips: 0
+RainIntensity: 1
+Clouds: 0.5499662
+Grime: 0.25
+RandomItemDensity: 0
+RandomItemSpearChance: 0
+Palette: 2
+Effects: HeatWave-1-46-157, ProjectedScanLines-0.6086956-344.7073-307.5333, SunBlock-1-33-107, FairyParticles-0.1956522-147.7906-81.8667, SuperStructureProjector-0.7282609-297-33, FireFlies-1-305-94, GreenSparks-1-336-149, Bloom-1-20-20, Dustpuffs-0-77-117, 
+PlacedObjects: FairyParticleSettings><-10.88831><187.8555><217~-564.3398~1~2.173913~8.152174~0~2.220868~4.802559~315.2174~59.78261~0~0~0~109.5652~0~219.1304~0~1~0.6956522~1~0.4021739~0.9782609~0~0~4.355433~Leaf~SIN_IO~SIN_IO~71.30432~0.4130435~3.913043, PlacedWind><-118.8428><-43.22169><-93.20105~1701.867~1107.899~1701.867~1371.118~-24.15561~-0.06048584~Objects~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~1~Creatures~Horizontal~1~Objects~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal, PlacedWind><-118.8428><-43.22169><-93.20105~1701.867~1107.899~1701.867~1371.118~-24.15561~-0.1039641~Visuals~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~1~Creatures~Horizontal~1~Objects~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal, PlacedWind><-118.8428><-43.22169><-93.20105~1701.867~1107.899~1701.867~1371.118~-24.15561~-0.01700759~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~1~Creatures~Horizontal~1~Objects~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal~0.04107666~Creatures~Horizontal, ExitSymbolHidden><515.3239><202.9359><, 
+FadePalette: 7, 0.2173913
+WetTerrain: OFF

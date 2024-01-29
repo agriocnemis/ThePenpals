@@ -1,0 +1,17 @@
+Template: NONE
+DangerType: None
+CeilingDrips: 0.1956522
+RainIntensity: 1
+WaveSpeed: 0.4610017
+WaveLength: 0.7772635
+WaveAmplitude: 0.04673912
+SecondWaveLength: 0.1775363
+SecondWaveAmplitude: 0
+Grime: 0.1304348
+Palette: 36
+EffectColorA: 11
+EffectColorB: 6
+Effects: RockFlea-0.2173913-64-97, Fog-0.3695652-71-34, DayNight-1-20-20, DustWave-1-40-40, 
+PlacedObjects: DeadTokenStalk><316.5699><291.5871><-18~-40, DeadTokenStalk><233.5825><314.6092><16~-48, DayNightSettings><107.9041><69.57449><5~8.660254~22~10, 
+AmbientSounds: OMNI><AM_ENV-WinterHum.ogg><745.8013><399.2727><0.5326087><0.823913, SPOT><AM_WIN-MedWind.ogg><746.66><536.6786><0.6086956><1><20.65997><367.6786><114.6447><-186.3553><0><0.6978262, SPOT><AM_WIN-HowlingWnd.ogg><872.5517><458.7241><0.5><1><136.5517><646.7241><15.64465><-238.3553><0><0.1, SPOT><AM_IND-DeepHum.ogg><770.8644><309.4141><0.5><1><802.8644><264.4141><-101.3553><-187.3553><0><0.1, 
+FadePalette: 30, 0.6847826

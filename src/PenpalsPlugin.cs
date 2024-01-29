@@ -49,6 +49,9 @@ namespace NCRApenpals
             // TAIL EDITS
             On.PlayerGraphics.ctor += PlayerGraphics_ctor;
 
+            // can change any gate requirement we want
+            On.RegionGate.customKarmaGateRequirements += RegionGate_customKarmaGateRequirements;
+
             // ----------------------------------- DREAM THINGS
             // zero-gravity oracles always
             On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
@@ -75,24 +78,33 @@ namespace NCRApenpals
             On.GlobalRain.DeathRain.NextDeathRainMode += DeathRain_NextDeathRainMode;
         }
 
+        private void RegionGate_customKarmaGateRequirements(On.RegionGate.orig_customKarmaGateRequirements orig, RegionGate self)
+        {
+            if (self.room.game.session.characterStats.name.value == "NCRAreal")
+            {
+                if (self.room.abstractRoom.name == "GATE_UW_SL")
+                {
+                    int num;
+                    if (int.TryParse(self.karmaRequirements[0].value, out num))
+                    {
+                        self.karmaRequirements[0] = RegionGate.GateRequirement.OneKarma;
+                    }
+                    int num2;
+                    if (int.TryParse(self.karmaRequirements[1].value, out num2))
+                    {
+                        self.karmaRequirements[1] = RegionGate.GateRequirement.TwoKarma;
+                    }
+                }
+            }
+            else
+            {
+                orig(self);
+            }
+        }
+
         private void DeathRain_NextDeathRainMode(On.GlobalRain.DeathRain.orig_NextDeathRainMode orig, GlobalRain.DeathRain self)
         {
-            if (self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal"
-                && self.deathRainMode == MoreSlugcats.MoreSlugcatsEnums.DeathRainMode.Pulses)
-            {
-                self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp;
-            }
-            else if (self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal"
-                && self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp)
-            {
-                self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeBPlateu;
-            }
-            else if (self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal"
-                && self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBPlateu)
-            {
-                self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.FinalBuildUp;
-            }
-            else if (self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal"
+            if ((self.globalRain.game.IsStorySession && self.globalRain.game.session.characterStats.name.value == "NCRAreal")
                 && self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.FinalBuildUp)
             {
                 self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeABuildUp;

@@ -1,0 +1,4 @@
+earlyCycleChance: 1
+earlyCycleFloodChance: 0.5
+playerGuideOverseerSpawnChance: 0.9
+pupSpawnChance: 0

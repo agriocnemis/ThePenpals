@@ -1,0 +1,12 @@
+Template: NONE
+DangerType: FloodAndRain
+CeilingDrips: 0.6521739
+Clouds: 0.02173913
+Grime: 0.2934783
+Palette: 4
+EffectColorA: 9
+EffectColorB: 15
+Effects: ReplaceEffectColorA-0-20-20-Color-1-1-0.9021739, ReplaceEffectColorB-0-257-67-Color-0.1630435-0.1630435-0.1630435, 
+PlacedObjects: NoSpearStickZone><474.0193><252.6991><-230~113, LightSource><734.1304><124.4103><0.5~White~-184~156~50~86.60254~1~0~None~0~0, CommonGateData><493.2794><251.0411><-650.9802~-6.942688~True~False~False~False~False~False~False~True~0~1~1, 
+AmbientSounds: OMNI><SO_WAT-DripTap.ogg><843.6221><640.0963><0.2065217><1, OMNI><SO_NAT-LilDrips.ogg><660.3007><637.7669><0.2065217><1, SPOT><SO_IND-MechHum02.ogg><751.1465><561.8289><0.2391304><1><152.1465><368.8289><-95.35535><-93.35535><0><0.3065219, 
+FadePalette: 38, 0.5978261

@@ -1,0 +1,7 @@
+blackSalamanderChance: 0.5
+slugPupSpawnChance: 0
+earlyCycleChance: 0.1
+earlyCycleFloodChance: 0.5
+
+Subregion: Comatose Cranny
+
