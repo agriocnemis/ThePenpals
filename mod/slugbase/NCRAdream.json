@@ -1,6 +1,6 @@
 {
 	"id": "NCRAdream",
-	"name": "DREAM",
+	"name": "Narcoleptic",
 	"description": "omg like minecraft?",
 	"features": {
 		"custom_colors": [
@@ -13,17 +13,23 @@
 				"story": "CD89FB"
 			}
 		],
-		"world_state": [ "NCRAdream", "Spear" ],
+		"world_state": [ "NCRAdream", "Spear", "Red" ],
 		"auto_grab_batflies": false,
+		
+		"weight": 0.9,
+		"walk_speed": [0.9, 0.9],
+		"throw_skill": [1, 0],
+		"lung_capacity": [0.9, 1],
+		"loudness": 0.8,
 
 		"alignments": {
 			"Lizards": {
-				"like": 1,
-				"strength": 1
+				"like": 0.1,
+				"strength": 0.2
 			},
 			"Scavengers": {
-				"like": 1,
-				"strength": 1
+				"like": -0.1,
+				"strength": 0.2
 			}
 		},
 		

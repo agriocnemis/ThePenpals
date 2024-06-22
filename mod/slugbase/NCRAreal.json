@@ -1,6 +1,6 @@
 {
 	"id": "NCRAreal",
-	"name": "REAL",
+	"name": "Insomniac",
 	"description": "bro i hate my 9 to 5",
 	"features": {
 		"custom_colors": [
@@ -15,6 +15,19 @@
 		],
 		"world_state": [ "NCRAreal", "Spear" ],
 		"auto_grab_batflies": false,
+		
+		"weight": 1.1,
+		"walk_speed": 1.1,
+		"throw_skill": 1,
+		"lung_capacity": [1.2, 1.5],
+		"loudness": 1.1,
+		"cycle_length_max": 6.5,
+		"cycle_length_min": 5.5,
+		"karma": 0,
+		"karma_cap": 0,
+		
+		"start_room": "LM_S13",
+		
 		
 		"select_menu_scene": "NCRAreal-select",
 		"select_menu_scene_ascended": "NCRAreal-end",

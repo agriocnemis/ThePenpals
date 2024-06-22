@@ -1,0 +1,13 @@
+Template: NONE
+DangerType: None
+CeilingDrips: 0
+RainIntensity: 1
+Clouds: 0.9134289
+Grime: 0.25
+RandomItemDensity: 0
+RandomItemSpearChance: 0
+Palette: 26
+Effects: HeatWave-1-29.63644-97.97778, FairyParticles-0.1956522-147.7906-81.8667, Bloom-1-20-20, Dustpuffs-0-0-0, WaterDepth-0.2717391-30-30, 
+PlacedObjects: FairyParticleSettings><-86.79462><570.4777><-1.417755~-416.4287~1~0~0~0~2.220868~4.802559~315.2174~59.78261~0~0~0~109.5652~0~219.1304~0~1~0.6956522~1~0.4021739~0.9782609~0~0~3.54348~Leaf~QUAD_OUT~SIN_IO~53.91293~0.1847829~3.913043, 
+FadePalette: 2, 0.04881121
+WetTerrain: OFF

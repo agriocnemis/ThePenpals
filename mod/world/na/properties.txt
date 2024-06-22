@@ -4,4 +4,3 @@ earlyCycleChance: 0.1
 earlyCycleFloodChance: 0.5
 
 Subregion: Comatose Cranny
-
