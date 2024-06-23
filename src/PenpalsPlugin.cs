@@ -67,15 +67,114 @@ namespace NCRApenpals
                 BindingFlags.Public).GetGetMethod(), new Func<orig_OverseerMainColor,
                 OverseerGraphics, Color>(this.OverseerGraphics_MainColor_get));
             On.CoralBrain.Mycelium.UpdateColor += Mycelium_UpdateColor;
+            On.OverseerGraphics.DrawSprites += OverseerGraphics_DrawSprites;
+            On.OverseerGraphics.DrawSprites -= Overseer_DrawspritesRemove;
+            On.OverseerGraphics.InitiateSprites += OverseerGraphics_InitiateSprites;
+            On.OverseerGraphics.InitiateSprites -= OverseerGraphics_RemoveSprites;
+            On.OverseerGraphics.ColorOfSegment += OverseerGraphics_ColorOfSegment;
+            On.OverseerGraphics.ApplyPalette += OverseerGraphics_ApplyPalette;
+            // random overseers
 
             //------------------------------------ REAL THINGS
             // omg so real
 
             On.GlobalRain.DeathRain.NextDeathRainMode += DeathRain_NextDeathRainMode;
             // rain does not instakill, but always has precycles
+        }
 
-            
-            // no cycle meter
+        private void OverseerGraphics_ApplyPalette(On.OverseerGraphics.orig_ApplyPalette orig, OverseerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.room != null && self.overseer != null &&
+                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.owner.abstractPhysicalObject.ID.RandomSeed);
+
+                self.ApplyPalette(sLeaser, rCam, palette);
+                self.earthColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+
+                UnityEngine.Random.state = state;
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+
+        private void OverseerGraphics_DrawSprites(On.OverseerGraphics.orig_DrawSprites orig, OverseerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            orig(self, sLeaser, rCam, timeStacker, camPos);
+            if (self.owner.room != null && self.overseer != null &&
+                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.owner.abstractPhysicalObject.ID.RandomSeed);
+
+                sLeaser.sprites[self.WhiteSprite].color = Color.Lerp(self.ColorOfSegment(0.75f, timeStacker),
+                    new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), 0.5f);
+                sLeaser.sprites[self.InnerGlowSprite].color =
+                    new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value, 0.5f);
+
+                UnityEngine.Random.state = state;
+            }
+            else if (self.owner.room != null && self.overseer != null)
+            {
+                sLeaser.sprites[self.WhiteSprite].color = Color.Lerp(self.ColorOfSegment(0.75f, timeStacker), new Color(0f, 0f, 1f), 0.5f);
+            }
+        }
+
+        private void Overseer_DrawspritesRemove(On.OverseerGraphics.orig_DrawSprites orig, OverseerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            sLeaser.sprites[self.WhiteSprite].color = Color.Lerp(self.ColorOfSegment(0.75f, timeStacker), new Color(0f, 0f, 1f), 0.5f);
+        }
+
+        private Color OverseerGraphics_ColorOfSegment(On.OverseerGraphics.orig_ColorOfSegment orig, OverseerGraphics self, float f, float timeStacker)
+        {
+            if (self.owner != null && self != null && self.overseer != null && self.overseer.room != null &&
+                self.overseer.room.world.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.owner.abstractPhysicalObject.ID.RandomSeed);
+
+                Color randcolour = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+
+                UnityEngine.Random.state = state;
+                return Color.Lerp(Color.Lerp(Custom.RGB2RGBA((self.MainColor +
+                    randcolour + self.earthColor * 8f) / 10f, 0.5f), Color.Lerp(self.MainColor, Color.Lerp(self.NeutralColor,
+                    self.earthColor, Mathf.Pow(f, 2f)), 0.5f),
+                    self.ExtensionOfSegment(f, timeStacker)), Custom.RGB2RGBA(self.MainColor, 0f),
+                    Mathf.Lerp(self.overseer.lastDying, self.overseer.dying, timeStacker));
+            }
+            else
+            {
+                return orig(self, f, timeStacker);
+            }
+        }
+
+        private void OverseerGraphics_InitiateSprites(On.OverseerGraphics.orig_InitiateSprites orig, OverseerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        {
+            orig(self, sLeaser, rCam);
+            if (self.owner != null && self.overseer.room != null && self.overseer != null &&
+                // making sure no values are null
+                self.overseer.room.world.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.owner.abstractPhysicalObject.ID.RandomSeed);
+
+                sLeaser.sprites[self.PupilSprite].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value,
+                    UnityEngine.Random.value, 0.5f);
+
+                UnityEngine.Random.state = state;
+            }
+            else
+            {
+                sLeaser.sprites[self.PupilSprite].color = new Color(0f, 0f, 0f, 0.5f);
+            }
+        }
+
+        private void OverseerGraphics_RemoveSprites(On.OverseerGraphics.orig_InitiateSprites orig, OverseerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        {
+            sLeaser.sprites[self.PupilSprite].color = new Color(0f, 0f, 0f, 0.5f);
         }
 
         private void Mycelium_UpdateColor(On.CoralBrain.Mycelium.orig_UpdateColor orig, Mycelium self, Color newColor, float gradientStart, int spr, RoomCamera.SpriteLeaser sLeaser)
