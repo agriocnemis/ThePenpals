@@ -6,7 +6,7 @@ using UnityEngine;
 using NCRApenpals;
 using On;
 
-namespace callingallpenpals
+namespace NCRApenpals
 {
     public static class callingallpenpals
     {
@@ -14,9 +14,13 @@ namespace callingallpenpals
         public class NCRAdream
         {
             public bool IsDream;
+            public bool DreamActive;
+            public bool InTheNightmare;
 
             public NCRAdream(){
                 this.IsDream = false;
+                this.DreamActive = false;
+                this.InTheNightmare = false;
             }
         }
 
@@ -28,12 +32,12 @@ namespace callingallpenpals
         public class NCRAreal
         {
             public bool IsReal;
-            public bool IsRealSession;
+            public bool RealActive;
 
             public NCRAreal()
             {
                 this.IsReal = false;
-                this.IsRealSession = false;
+                this.RealActive = false;
             }
         }
 
