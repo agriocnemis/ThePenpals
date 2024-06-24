@@ -62,6 +62,10 @@ namespace NCRApenpals
             On.TentaclePlantGraphics.ApplyPalette += TentaclePlantGraphics_ApplyPalette;
             On.PoleMimicGraphics.DrawSprites += PoleMimicGraphics_DrawSprites;
             On.CentipedeGraphics.ApplyPalette += CentipedeGraphics_ApplyPalette;
+            On.CentipedeGraphics.ctor += CentipedeGraphics_ctor;
+            On.SpiderGraphics.ApplyPalette += SpiderGraphics_ApplyPalette;
+            On.BigSpiderGraphics.ApplyPalette += BigSpiderGraphics_ApplyPalette;
+            On.CicadaGraphics.ApplyPalette += CicadaGraphics_ApplyPalette;
             // making dream colourful
 
             Hook fancyoverseers = new Hook(typeof(global::OverseerGraphics).GetProperty("MainColor", BindingFlags.Instance |
@@ -79,7 +83,166 @@ namespace NCRApenpals
             // omg so real
 
             On.GlobalRain.DeathRain.NextDeathRainMode += DeathRain_NextDeathRainMode;
-            // rain does not instakill, but always has precycles
+            // rain does not instakill... or well. it SHOULDNT. it still does tho
+        }
+
+        private void CicadaGraphics_ApplyPalette(On.CicadaGraphics.orig_ApplyPalette orig, CicadaGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.room != null && self.owner != null && self != null &&
+                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.cicada.abstractCreature.ID.RandomSeed);
+
+                Color color;
+                if (self.cicada.gender)
+                {
+                    color = Color.Lerp(HSLColor.Lerp(self.iVars.color, new HSLColor(self.cicada.iVars.color.hue,
+                        0f, 1f), 0.8f).rgb, palette.fogColor, 0.1f);
+                }
+                else
+                {
+                    color = Color.Lerp(HSLColor.Lerp(self.cicada.iVars.color, new HSLColor(self.cicada.iVars.color.hue,
+                        1f, 0f), 0.8f).rgb, palette.blackColor, 0.85f);
+                }
+                if (self.cicada.gender)
+                {
+                    self.shieldColor = Color.Lerp(color, new HSLColor(self.cicada.iVars.color.hue, 0.5f, 0.4f).rgb, 0.8f);
+                }
+                else
+                {
+                    self.shieldColor = Color.Lerp(color, new HSLColor(self.cicada.iVars.color.hue, 0.5f, 0.5f).rgb, 0.4f);
+                }
+                if (self.cicada.gender)
+                {
+                    sLeaser.sprites[self.HighlightSprite].color = Color.Lerp(color, new Color(1f, 1f, 1f), 0.7f);
+                }
+                else
+                {
+                    sLeaser.sprites[self.HighlightSprite].color = Color.Lerp(color, self.cicada.iVars.color.rgb, 0.07f);
+                }
+                sLeaser.sprites[self.BodySprite].color = color;
+                sLeaser.sprites[self.HeadSprite].color = color;
+                sLeaser.sprites[self.ShieldSprite].color = self.shieldColor;
+                for (int i = 0; i < 2; i++)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        sLeaser.sprites[self.WingSprite(i, j)].color = self.shieldColor;
+                        sLeaser.sprites[self.TentacleSprite(i, j)].color = color;
+                    }
+                }
+                if (self.cicada.gender)
+                {
+                    self.eyeColor = Color.Lerp(color, palette.blackColor, 0.8f);
+                    sLeaser.sprites[self.EyesASprite].color = self.eyeColor;
+                    FSprite fsprite = sLeaser.sprites[self.EyesBSprite];
+                    Cicada.IndividualVariations iVars = self.iVars;
+                    fsprite.color = iVars.color.rgb;
+                }
+                else
+                {
+                    Cicada.IndividualVariations iVars = self.iVars;
+                    self.eyeColor = iVars.color.rgb;
+                    sLeaser.sprites[self.EyesASprite].color = self.eyeColor;
+                    sLeaser.sprites[self.EyesBSprite].color = palette.blackColor;
+                }
+                self.ApplyPalette(sLeaser, rCam, palette);
+
+
+                UnityEngine.Random.state = state;
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+
+        private void BigSpiderGraphics_ApplyPalette(On.BigSpiderGraphics.orig_ApplyPalette orig, BigSpiderGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.room != null && self.owner != null && self != null &&
+                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.bug.abstractCreature.ID.RandomSeed);
+
+                float num;
+                self.blackColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                self.yellowCol = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
+                    palette.fogColor, 0.2f);
+                num = 1f - self.darkness;
+                for (int i = 0; i < sLeaser.sprites.Length; i++)
+                {
+                    sLeaser.sprites[i].color = self.blackColor;
+                }
+                for (int j = 0; j < 2; j++)
+                {
+                    for (int k = 0; k < 4; k++)
+                    {
+                        (sLeaser.sprites[self.MandibleSprite(j, 1)] as CustomFSprite).verticeColors[k] =
+                            new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    }
+                }
+                for (int l = 0; l < self.scales.Length; l++)
+                {
+                    for (int m = 0; m < self.scales[l].GetLength(0); m++)
+                    {
+                        float num2 = (Mathf.InverseLerp(0f, (float)(self.scales[l].GetLength(0) - 1),
+                            (float)m) + Mathf.InverseLerp(0f, 5f, (float)m)) / 2f;
+                        sLeaser.sprites[self.FirstScaleSprite + (int)self.scales[l][m, 3].x].color =
+                            Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
+                            new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), num2 *
+                            Mathf.Lerp(0.3f, 0.9f, self.scaleSpecs[l, 0].x) * num);
+                    }
+                }
+
+
+                UnityEngine.Random.state = state;
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+
+        private void SpiderGraphics_ApplyPalette(On.SpiderGraphics.orig_ApplyPalette orig, SpiderGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.room != null && self.owner != null && self != null &&
+                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.spider.abstractCreature.ID.RandomSeed);
+
+
+                Color color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                sLeaser.sprites[self.BodySprite].color = color;
+                for (int i = 1; i < 17; i++)
+                {
+                    sLeaser.sprites[i].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                }
+
+                UnityEngine.Random.state = state;
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+
+        private void CentipedeGraphics_ctor(On.CentipedeGraphics.orig_ctor orig, CentipedeGraphics self, PhysicalObject ow)
+        {
+            orig(self, ow);
+            if (self.owner.room != null && self.owner != null && self != null &&
+                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.centipede.abstractCreature.ID.RandomSeed);
+
+                self.hue = UnityEngine.Random.value;
+                self.saturation = UnityEngine.Random.value;
+
+                UnityEngine.Random.state = state;
+            }
         }
 
         private void CentipedeGraphics_ApplyPalette(On.CentipedeGraphics.orig_ApplyPalette orig, CentipedeGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -88,7 +251,7 @@ namespace NCRApenpals
                 self.owner.room.game.session.characterStats.name.value == "NCRAdream")
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
-                UnityEngine.Random.InitState(self.owner.abstractPhysicalObject.ID.RandomSeed);
+                UnityEngine.Random.InitState(self.centipede.abstractCreature.ID.RandomSeed);
 
                 if (self.centipede.Glower != null)
                 {
@@ -500,17 +663,16 @@ namespace NCRApenpals
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
                 self.blackColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                self.mimicColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                self.mimicColor = palette.blackColor;
                 UnityEngine.Random.state = state;
             }
             else if (self != null && self.owner != null && !self.owner.slatedForDeletetion &&
-                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+                self.owner.room.game.session.characterStats.name.value == "NCRAreal")
             {
-                // this does not ordinarily trigger yet. this is a placeholder for when the nightmare state is operational.
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
-                self.blackColor = palette.blackColor;
-                self.mimicColor = new Color(0.01f, 0.01f, 0.01f);
+                self.blackColor = new Color(0.01f, 0.01f, 0.01f);
+                self.mimicColor = palette.blackColor;
                 UnityEngine.Random.state = state;
             }
             else
@@ -525,8 +687,13 @@ namespace NCRApenpals
                 // makes sure base values arent null
                 self.room.game.session.characterStats.name.value == "NCRAdream")
             {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
+
                 self.color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), palette.fogColor, UnityEngine.Random.value);
                 self.UpdateColor(sLeaser, false);
+
+                UnityEngine.Random.state = state;
             }
             else
             {

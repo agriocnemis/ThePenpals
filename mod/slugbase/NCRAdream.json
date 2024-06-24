@@ -14,6 +14,7 @@
 			}
 		],
 		"world_state": [ "NCRAdream", "Spear", "Red" ],
+		"start_room": [ "NA_S01" ],
 		"auto_grab_batflies": false,
 		
 		"weight": 0.9,
