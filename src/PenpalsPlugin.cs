@@ -11,6 +11,9 @@ using MonoMod.RuntimeDetour;
 using System.Reflection;
 using System;
 using CoralBrain;
+using System.Xml.Schema;
+using On;
+using IL;
 
 namespace NCRApenpals
 {
@@ -66,8 +69,10 @@ namespace NCRApenpals
             On.SpiderGraphics.ApplyPalette += SpiderGraphics_ApplyPalette;
             On.BigSpiderGraphics.ApplyPalette += BigSpiderGraphics_ApplyPalette;
             On.CicadaGraphics.ApplyPalette += CicadaGraphics_ApplyPalette;
-            // making dream colourful
+            On.DaddyGraphics.ApplyPalette += DaddyGraphics_ApplyPalette;
 
+            // making dream colourful
+            //testing atm if can be simplified -Y
             Hook fancyoverseers = new Hook(typeof(global::OverseerGraphics).GetProperty("MainColor", BindingFlags.Instance |
                 BindingFlags.Public).GetGetMethod(), new Func<orig_OverseerMainColor,
                 OverseerGraphics, Color>(this.OverseerGraphics_MainColor_get));
@@ -86,6 +91,22 @@ namespace NCRApenpals
             // rain does not instakill... or well. it SHOULDNT. it still does tho
         }
 
+        private void DaddyGraphics_ApplyPalette(On.DaddyGraphics.orig_ApplyPalette orig, DaddyGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.room != null && self.owner != null && self != null &&
+                            self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                self.blackColor = new Color(0f, .73f, .06f, .8f);
+                Color color = new Color(0f, .73f, .06f, .8f);
+                
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+        //should make all Dream DLLs dark. if not. explodes
+        //I am exploding.
         private void CicadaGraphics_ApplyPalette(On.CicadaGraphics.orig_ApplyPalette orig, CicadaGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
             if (self.owner.room != null && self.owner != null && self != null &&
@@ -212,7 +233,6 @@ namespace NCRApenpals
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.spider.abstractCreature.ID.RandomSeed);
-
 
                 Color color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 sLeaser.sprites[self.BodySprite].color = color;
