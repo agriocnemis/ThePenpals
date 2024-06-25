@@ -16,11 +16,13 @@ namespace NCRApenpals
             public bool IsDream;
             public bool DreamActive;
             public bool InTheNightmare;
+            public float Sanity;
 
             public NCRAdream(){
                 this.IsDream = false;
                 this.DreamActive = false;
                 this.InTheNightmare = false;
+                this.Sanity = 1f;
             }
         }
 
@@ -39,6 +41,7 @@ namespace NCRApenpals
             {
                 this.IsReal = false;
                 this.RealActive = false;
+                this.Sanity = 1f;
             }
         }
 
