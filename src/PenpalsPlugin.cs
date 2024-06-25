@@ -26,6 +26,8 @@ namespace NCRApenpals
 
         public void OnEnable()
         {
+            // ------------------------------------ ALL THINGS ------------------------------------
+
             On.RainWorld.OnModsInit += NCRAExtras.WrapInit(LoadResources);
             On.Player.ctor += Player_ctor;
             // initializing
@@ -48,7 +50,10 @@ namespace NCRApenpals
             On.RegionGate.customKarmaGateRequirements += RegionGate_customKarmaGateRequirements;
             // can change any gate requirement we want
 
-            // ----------------------------------- DREAM THINGS
+            On.SSOracleBehavior.SSOracleMeetWhite.Update += SSOracleMeetWhite_Update;
+            // fixing oracle issues
+
+            // ----------------------------------- DREAM THINGS ------------------------------------
             On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
             // zero-gravity oracles always
 
@@ -83,42 +88,546 @@ namespace NCRApenpals
             On.OverseerGraphics.ColorOfSegment += OverseerGraphics_ColorOfSegment;
             // random overseers
 
+            
+
+
+
+            // nightmare-exclusive code below!
+
             On.DaddyGraphics.DrawSprites += DaddyGraphics_DrawSprites;
             On.DaddyGraphics.Eye.GetColor += Eye_GetColor;
             On.DaddyGraphics.DaddyTubeGraphic.ApplyPalette += DaddyTubeGraphic_ApplyPalette;
             On.DaddyGraphics.DaddyDeadLeg.ApplyPalette += DaddyDeadLeg_ApplyPalette;
             On.DaddyGraphics.DaddyDangleTube.ApplyPalette += DaddyDangleTube_ApplyPalette;
-            // daddy stuff. winks
+            On.DaddyBubble.DrawSprites += DaddyBubble_DrawSprites;
+            On.DaddyGraphics.ApplyPalette += DaddyGraphics_ApplyPalette;
+            On.DaddyGraphics.RenderSlits += DaddyGraphics_RenderSlits;
+            On.DaddyRipple.DrawSprites += DaddyRipple_DrawSprites;
+            // longlegs code
 
             On.DaddyGraphics.HunterDummy.ApplyPalette += HunterDummy_ApplyPalette;
             On.DaddyGraphics.HunterDummy.ctor += HunterDummy_ctor;
+            On.DaddyGraphics.HunterDummy.DrawSprites += HunterDummy_DrawSprites;
             // insomniac long legs
 
-            //------------------------------------ REAL THINGS
+            On.DaddyCorruption.Bulb.ApplyPalette += Bulb_ApplyPalette;
+            On.DaddyCorruption.Update += DaddyCorruption_Update;
+            // wall-corruption
+
+            //------------------------------------ REAL THINGS ------------------------------------
             // omg so real
 
             On.GlobalRain.DeathRain.NextDeathRainMode += DeathRain_NextDeathRainMode;
             // rain does not instakill... or well. it SHOULDNT. it still does tho
         }
 
+        private void SSOracleMeetWhite_Update(On.SSOracleBehavior.SSOracleMeetWhite.orig_Update orig, SSOracleBehavior.SSOracleMeetWhite self)
+        {
+            if ((self.player.GetDreamCat().DreamActive || self.player.GetRealCat().RealActive) && self.player != null &&
+                self != null)
+            {
+                self.owner.LockShortcuts();
+                if (ModManager.MSC && (self.action == MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_ThirdCurious ||
+                    self.action == MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_SecondImages))
+                {
+                    Vector2 vector = self.oracle.room.MiddleOfTile(24, 14) - self.player.mainBodyChunk.pos;
+                    float num = Custom.Dist(self.oracle.room.MiddleOfTile(24, 14), self.player.mainBodyChunk.pos);
+                    self.player.mainBodyChunk.vel += Vector2.ClampMagnitude(vector, 40f) / 40f * Mathf.Clamp(16f - num / 100f * 16f, 4f, 16f);
+                    if (self.player.mainBodyChunk.vel.magnitude < 1f || num < 8f)
+                    {
+                        self.player.mainBodyChunk.vel = Vector2.zero;
+                        self.player.mainBodyChunk.HardSetPosition(self.oracle.room.MiddleOfTile(24, 14));
+                    }
+                }
+                if (self.action == SSOracleBehavior.Action.MeetWhite_Shocked)
+                {
+                    self.owner.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
+                    if (self.owner.oracle.room.game.manager.rainWorld.progression.miscProgressionData.redHasVisitedPebbles ||
+                        self.owner.oracle.room.game.manager.rainWorld.options.validation)
+                    {
+                        if (self.inActionCounter > 40)
+                        {
+                            self.owner.NewAction(SSOracleBehavior.Action.General_GiveMark);
+                            self.owner.afterGiveMarkAction = SSOracleBehavior.Action.General_MarkTalk;
+                            return;
+                        }
+                    }
+                    else if (self.owner.oracle.room.game.IsStorySession &&
+                        self.owner.oracle.room.game.GetStorySession.saveState.deathPersistentSaveData.theMark)
+                    {
+                        if (self.inActionCounter > 40)
+                        {
+                            self.owner.NewAction(SSOracleBehavior.Action.General_MarkTalk);
+                            return;
+                        }
+                    }
+                    else if (self.inActionCounter > 120)
+                    {
+                        self.owner.NewAction(SSOracleBehavior.Action.MeetWhite_Curious);
+                        return;
+                    }
+                }
+                else if (self.action == SSOracleBehavior.Action.MeetWhite_Curious)
+                {
+                    self.owner.movementBehavior = SSOracleBehavior.MovementBehavior.Investigate;
+                    if (self.inActionCounter > 360)
+                    {
+                        self.owner.NewAction(SSOracleBehavior.Action.MeetWhite_Talking);
+                        return;
+                    }
+                }
+                else if (self.action == SSOracleBehavior.Action.MeetWhite_Talking)
+                {
+                    self.owner.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
+                    if (!self.CurrentlyCommunicating && self.communicationPause > 0)
+                    {
+                        self.communicationPause--;
+                    }
+                    if (!self.CurrentlyCommunicating && self.communicationPause < 1)
+                    {
+                        if (self.communicationIndex >= 4)
+                        {
+                            self.owner.NewAction(SSOracleBehavior.Action.MeetWhite_Texting);
+                        }
+                        else if (self.owner.allStillCounter > 20)
+                        {
+                            self.NextCommunication();
+                        }
+                    }
+                    if (!self.CurrentlyCommunicating)
+                    {
+                        self.owner.nextPos += Custom.RNV();
+                        return;
+                    }
+                }
+                else
+                {
+                    if (self.action == SSOracleBehavior.Action.MeetWhite_Texting)
+                    {
+                        self.movementBehavior = SSOracleBehavior.MovementBehavior.ShowMedia;
+                        if (self.oracle.graphicsModule != null)
+                        {
+                            (self.oracle.graphicsModule as OracleGraphics).halo.connectionsFireChance = 0f;
+                        }
+                        if (!self.CurrentlyCommunicating && self.communicationPause > 0)
+                        {
+                            self.communicationPause--;
+                        }
+                        if (!self.CurrentlyCommunicating && self.communicationPause < 1)
+                        {
+                            if (self.communicationIndex >= 6 || (ModManager.MSC && self.owner.oracle.ID == MoreSlugcatsEnums.OracleID.DM &&
+                                self.communicationIndex >= 4))
+                            {
+                                self.owner.NewAction(SSOracleBehavior.Action.MeetWhite_Images);
+                            }
+                            else if (self.owner.allStillCounter > 20)
+                            {
+                                self.NextCommunication();
+                            }
+                        }
+                        self.chatLabel.setPos = new Vector2?(self.showMediaPos);
+                        return;
+                    }
+                    if (self.action == SSOracleBehavior.Action.MeetWhite_Images ||
+                        (ModManager.MSC && self.action == MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_SecondImages))
+                    {
+                        self.movementBehavior = SSOracleBehavior.MovementBehavior.ShowMedia;
+                        if (self.communicationPause > 0)
+                        {
+                            self.communicationPause--;
+                        }
+                        if (ModManager.MSC && self.action == MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_SecondImages)
+                        {
+                            self.myProjectionCircle.pos = new Vector2(self.player.mainBodyChunk.pos.x - 10f,
+                                self.player.mainBodyChunk.pos.y);
+                        }
+                        if (self.inActionCounter > 150 && self.communicationPause < 1)
+                        {
+                            if (self.action == SSOracleBehavior.Action.MeetWhite_Images && (self.communicationIndex >= 3 ||
+                                (ModManager.MSC && self.owner.oracle.ID == MoreSlugcatsEnums.OracleID.DM && self.communicationIndex >= 1)))
+                            {
+                                self.owner.NewAction(SSOracleBehavior.Action.MeetWhite_SecondCurious);
+                            }
+                            else if (ModManager.MSC && self.action == MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_SecondImages &&
+                                self.communicationIndex >= 2)
+                            {
+                                self.owner.NewAction(MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_StartDialog);
+                            }
+                            else
+                            {
+                                self.NextCommunication();
+                            }
+                        }
+                        if (self.showImage != null)
+                        {
+                            self.showImage.setPos = new Vector2?(self.showMediaPos);
+                        }
+                        if (UnityEngine.Random.value < 0.033333335f)
+                        {
+                            self.idealShowMediaPos += Custom.RNV() * UnityEngine.Random.value * 30f;
+                            self.showMediaPos += Custom.RNV() * UnityEngine.Random.value * 30f;
+                            return;
+                        }
+                    }
+                    else if (self.action == SSOracleBehavior.Action.MeetWhite_SecondCurious)
+                    {
+                        self.movementBehavior = SSOracleBehavior.MovementBehavior.Investigate;
+                        if (self.inActionCounter == 80)
+                        {
+                            if (ModManager.MSC && self.owner.oracle.ID == MoreSlugcatsEnums.OracleID.DM)
+                            {
+                                self.voice = self.oracle.room.PlaySound(SoundID.SL_AI_Talk_5, self.oracle.firstChunk);
+                            }
+                            else
+                            {
+                                self.voice = self.oracle.room.PlaySound(SoundID.SS_AI_Talk_5, self.oracle.firstChunk);
+                            }
+                            self.voice.requireActiveUpkeep = true;
+                        }
+                        if (self.inActionCounter > 240)
+                        {
+                            self.owner.NewAction(SSOracleBehavior.Action.General_GiveMark);
+                            self.owner.afterGiveMarkAction = SSOracleBehavior.Action.General_MarkTalk;
+                            return;
+                        }
+                    }
+                    else if (self.action == SSOracleBehavior.Action.General_MarkTalk)
+                    {
+                        self.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
+                        if (self.owner.conversation != null && self.owner.conversation.id == self.convoID &&
+                            self.owner.conversation.slatedForDeletion)
+                        {
+                            self.owner.conversation = null;
+                            self.owner.NewAction(SSOracleBehavior.Action.ThrowOut_ThrowOut);
+                            return;
+                        }
+                    }
+                    else if (ModManager.MSC && self.action == MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_ThirdCurious)
+                    {
+                        self.owner.movementBehavior = SSOracleBehavior.MovementBehavior.Investigate;
+                        if (self.inActionCounter % 180 == 1)
+                        {
+                            self.owner.investigateAngle = UnityEngine.Random.value * 360f;
+                        }
+                        if (self.inActionCounter == 180)
+                        {
+                            self.dialogBox.NewMessage(self.Translate("Hello there."), 0);
+                            self.dialogBox.NewMessage(self.Translate("Are my words reaching you?"), 0);
+                        }
+                        if (self.inActionCounter == 460)
+                        {
+                            self.myProjectionCircle = new ProjectionCircle(self.player.mainBodyChunk.pos, 0f, 3f);
+                            self.oracle.room.AddObject(self.myProjectionCircle);
+                        }
+                        if (self.inActionCounter > 460)
+                        {
+                            float num2 = Mathf.Lerp(0f, 1f, ((float)self.inActionCounter - 460f) / 150f);
+                            self.myProjectionCircle.radius = 18f * Mathf.Clamp(num2 * 2f, 0f, 1f);
+                            self.myProjectionCircle.pos = new Vector2(self.player.mainBodyChunk.pos.x - 10f,
+                                self.player.mainBodyChunk.pos.y);
+                        }
+                        if (self.inActionCounter > 770)
+                        {
+                            self.owner.NewAction(MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_SecondImages);
+                            return;
+                        }
+                    }
+                    else if (ModManager.MSC && self.action == MoreSlugcatsEnums.SSOracleBehaviorAction.MeetWhite_StartDialog)
+                    {
+                        if (self.inActionCounter < 48)
+                        {
+                            self.player.mainBodyChunk.vel += Vector2.ClampMagnitude(self.oracle.room.MiddleOfTile(24, 14) -
+                                self.player.mainBodyChunk.pos, 40f) / 40f * (6f - (float)self.inActionCounter / 8f);
+                            float num3 = 1f - (float)self.inActionCounter / 48f;
+                            self.myProjectionCircle.radius = 18f * Mathf.Clamp(num3 * 2f, 0f, 3f);
+                            self.myProjectionCircle.pos = new Vector2(self.player.mainBodyChunk.pos.x - 10f,
+                                self.player.mainBodyChunk.pos.y);
+                        }
+                        if (self.inActionCounter == 48)
+                        {
+                            self.myProjectionCircle.Destroy();
+                        }
+                        if (self.inActionCounter == 180)
+                        {
+                            SLOrcacleState sloracleState = self.oracle.room.game.GetStorySession.saveState.miscWorldSaveData.SLOracleState;
+                            int playerEncounters = sloracleState.playerEncounters;
+                            sloracleState.playerEncounters = playerEncounters + 1;
+                            self.owner.NewAction(MoreSlugcatsEnums.SSOracleBehaviorAction.Moon_AfterGiveMark);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                orig(self);
+            }
+        }
+
+        private void DaddyRipple_DrawSprites(On.DaddyRipple.orig_DrawSprites orig, DaddyRipple self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            orig(self, sLeaser, rCam, timeStacker, camPos);
+            if (self.room != null && self != null && self.owner != null &&
+                self.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                float num = Mathf.Lerp(self.lastLife, self.life, timeStacker);
+                float num2 = Mathf.InverseLerp(0f, 0.75f, num);
+                sLeaser.sprites[0].color = Color.Lerp((num2 > 0.5f) ? new Color(1f, 0f, 0f) : new Color(0f, 0f, 0f),
+                    Color.Lerp(new Color(0f, 0f, 0f), new Color(1f, 0f, 0f), 0.5f + 0.5f * self.intensity), Mathf.Sin(num2 * 3.1415927f));
+            }
+        }
+
+        private void DaddyGraphics_RenderSlits(On.DaddyGraphics.orig_RenderSlits orig, DaddyGraphics self, int chunk, Vector2 pos, Vector2 middleOfBody, float rotation, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            if (self.daddy.room != null && self != null && self.owner != null && self.daddy != null &&
+                self.daddy.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                if (self.daddy.HDmode && chunk < 2)
+                {
+                    if (self.daddy.room.game.FirstAlivePlayer.realizedCreature != null && 
+                        (self.daddy.room.game.FirstAlivePlayer.realizedCreature as Player).GetDreamCat().Sanity < 0.5f)
+                    {
+                        // if sanity is too low, it DOES have eye sprites.
+                        sLeaser.sprites[self.EyeSprite(chunk, 0)].isVisible = true;
+                        sLeaser.sprites[self.EyeSprite(chunk, 1)].isVisible = true;
+                        sLeaser.sprites[self.EyeSprite(chunk, 2)].isVisible = true;
+                    }
+                    else
+                    {
+                        sLeaser.sprites[self.EyeSprite(chunk, 0)].isVisible = false;
+                        sLeaser.sprites[self.EyeSprite(chunk, 1)].isVisible = false;
+                        sLeaser.sprites[self.EyeSprite(chunk, 2)].isVisible = false;
+                        return;
+                    }
+                }
+                float rad = self.daddy.bodyChunks[chunk].rad;
+                float num = Mathf.Pow(Mathf.Max(0f, Mathf.Lerp(self.eyes[chunk].lastClosed, self.eyes[chunk].closed,
+                    timeStacker)), 0.6f);
+                float num2 = (self.SizeClass ? 1f : 0.8f) * (1f - num);
+                Vector2 b = Vector2.Lerp(self.eyes[chunk].lastDir, self.eyes[chunk].dir, timeStacker);
+                float num3 = Mathf.Lerp(self.eyes[chunk].lastFocus, self.eyes[chunk].focus, timeStacker) *
+                    Mathf.Pow(Mathf.InverseLerp(-1f, 1f, Vector2.Dot(Custom.DirVec(middleOfBody, pos), b.normalized)), 0.7f);
+                num3 = Mathf.Max(num3, num);
+                float num4 = Mathf.InverseLerp(0f, Mathf.Lerp(30f, 50f, self.chunksRotats[chunk, 1]),
+                    Vector2.Distance(middleOfBody, pos + Custom.DirVec(middleOfBody, pos) * rad)) * 0.9f;
+                num4 = Mathf.Lerp(num4, 1f, 0.5f * num3);
+                Vector2 vector = Vector2.Lerp(Custom.DirVec(middleOfBody, pos) * num4, b, b.magnitude * 0.5f);
+                self.eyes[chunk].centerRenderPos = pos + vector * rad;
+                self.eyes[chunk].renderColor = Color.Lerp(new Color(1f, 0f, 0f), new Color(0f, 0f, 0f),
+                    Mathf.Lerp(UnityEngine.Random.value * self.eyes[chunk].light, 1f, num));
+                if (num > 0f)
+                {
+                    self.eyes[chunk].renderColor = Color.Lerp(self.eyes[chunk].renderColor, new Color(0f, 0f, 0f), num);
+                }
+                self.eyes[chunk].renderColor = Color.Lerp(self.eyes[chunk].renderColor, new Color(0f, 0f, 0f), self.eyes[chunk].flash);
+                sLeaser.sprites[self.EyeSprite(chunk, 0)].color = self.eyes[chunk].renderColor;
+                sLeaser.sprites[self.EyeSprite(chunk, 1)].color = self.eyes[chunk].renderColor;
+                for (int i = 0; i < 2; i++)
+                {
+                    Vector2 vector2 = Custom.DegToVec(rotation + 90f * (float)i);
+                    Vector2 a = Custom.PerpendicularVector(vector2);
+                    (sLeaser.sprites[self.EyeSprite(chunk, i)] as TriangleMesh).MoveVertice(0, pos + self.BulgeVertex(vector2 *
+                        rad * 0.9f * Mathf.Lerp(1f, 0.6f, num3), vector, rad) - camPos);
+                    (sLeaser.sprites[self.EyeSprite(chunk, i)] as TriangleMesh).MoveVertice(9, pos + self.BulgeVertex(vector2 *
+                        -rad * 0.9f * Mathf.Lerp(1f, 0.6f, num3), vector, rad) - camPos);
+                    for (int j = 1; j < 5; j++)
+                    {
+                        for (int k = 0; k < 2; k++)
+                        {
+                            float d = rad * ((j < 3) ? 0.7f : 0.25f) * ((k == 0) ? 1f : -1f) * Mathf.Lerp(1f, 0.6f, num3);
+                            int num5 = (k == 0) ? j : (9 - j);
+                            float d2 = num2 * ((j < 3) ? 0.5f : 1f) * ((num5 % 2 == 0) ? 1f : -1f) * Mathf.Lerp(1f, 2.5f, num3);
+                            (sLeaser.sprites[self.EyeSprite(chunk, i)] as TriangleMesh).MoveVertice(num5, pos +
+                                self.BulgeVertex(vector2 * d + a * d2, vector, rad) - camPos);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                orig(self, chunk, pos, middleOfBody, rotation, sLeaser, rCam, timeStacker, camPos);
+            }
+        }
+
+        private void HunterDummy_DrawSprites(On.DaddyGraphics.HunterDummy.orig_DrawSprites orig, DaddyGraphics.HunterDummy self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            if (self.owner.daddy.room != null && self != null && self.owner != null && self.owner.daddy != null &&
+                self.owner.daddy.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                float num = 0.5f + 0.5f * Mathf.Sin(Mathf.Lerp(self.lastBreath, self.breath, timeStacker) * 3.1415927f * 2f);
+                Vector2 vector = Vector2.Lerp(self.drawPositions[0, 1], self.drawPositions[0, 0], timeStacker);
+                Vector2 vector2 = Vector2.Lerp(self.drawPositions[1, 1], self.drawPositions[1, 0], timeStacker);
+                Vector2 vector3 = Vector2.Lerp(self.head.lastPos, self.head.pos, timeStacker);
+                float num2 = Mathf.InverseLerp(0.3f, 0.5f, Mathf.Abs(Custom.DirVec(vector2, vector).y));
+                sLeaser.sprites[self.startSprite].x = vector.x - camPos.x;
+                sLeaser.sprites[self.startSprite].y = vector.y - camPos.y + 0.5f * num * (1f - num2);
+                sLeaser.sprites[self.startSprite].rotation = Custom.AimFromOneVectorToAnother(vector2, vector);
+                sLeaser.sprites[self.startSprite].scaleX = 1f + Mathf.Lerp(-0.15f, 0.05f, num) * num2;
+                sLeaser.sprites[self.startSprite + 1].x = (vector2.x * 2f + vector.x) / 3f - camPos.x;
+                sLeaser.sprites[self.startSprite + 1].y = (vector2.y * 2f + vector.y) / 3f - camPos.y;
+                sLeaser.sprites[self.startSprite + 1].rotation = Custom.AimFromOneVectorToAnother(vector, Vector2.Lerp(self.tail[0].lastPos,
+                    self.tail[0].pos, timeStacker));
+                sLeaser.sprites[self.startSprite + 1].scaleY = 1f;
+                sLeaser.sprites[self.startSprite + 1].scaleX = 1f + 0.05f * num - 0.05f;
+                Vector2 vector4 = (vector2 * 3f + vector) / 4f;
+                float d = 0.8f;
+                float d2 = 6f;
+                for (int i = 0; i < 4; i++)
+                {
+                    Vector2 vector5 = Vector2.Lerp(self.tail[i].lastPos, self.tail[i].pos, timeStacker);
+                    Vector2 normalized = (vector5 - vector4).normalized;
+                    Vector2 a = Custom.PerpendicularVector(normalized);
+                    float d3 = Vector2.Distance(vector5, vector4) / 5f;
+                    if (i == 0)
+                    {
+                        d3 = 0f;
+                    }
+                    (sLeaser.sprites[self.startSprite + 2] as TriangleMesh).MoveVertice(i * 4, vector4 - a * d2 * d + normalized * d3 - camPos);
+                    (sLeaser.sprites[self.startSprite + 2] as TriangleMesh).MoveVertice(i * 4 + 1, vector4 + a * d2 * d + normalized * d3 - camPos);
+                    if (i < 3)
+                    {
+                        (sLeaser.sprites[self.startSprite + 2] as TriangleMesh).MoveVertice(i * 4 + 2, vector5 - a *
+                            self.tail[i].StretchedRad * d - normalized * d3 - camPos);
+                        (sLeaser.sprites[self.startSprite + 2] as TriangleMesh).MoveVertice(i * 4 + 3, vector5 + a *
+                            self.tail[i].StretchedRad * d - normalized * d3 - camPos);
+                    }
+                    else
+                    {
+                        (sLeaser.sprites[self.startSprite + 2] as TriangleMesh).MoveVertice(i * 4 + 2, vector5 - camPos);
+                    }
+                    d2 = self.tail[i].StretchedRad;
+                    vector4 = vector5;
+                }
+                float num3 = Custom.AimFromOneVectorToAnother(Vector2.Lerp(vector2, vector, 0.5f), vector3);
+                int num4 = Mathf.RoundToInt(Mathf.Abs(num3 / 360f * 34f));
+                Vector2 vector6 = Vector2.zero;
+                vector6 *= 0f;
+                num4 = 0;
+                sLeaser.sprites[self.startSprite + 5].rotation = num3;
+                sLeaser.sprites[self.startSprite + 3].x = vector3.x - camPos.x;
+                sLeaser.sprites[self.startSprite + 3].y = vector3.y - camPos.y;
+                sLeaser.sprites[self.startSprite + 3].rotation = num3;
+                sLeaser.sprites[self.startSprite + 3].scaleX = ((num3 >= 0f) ? 1f : -1f);
+                sLeaser.sprites[self.startSprite + 3].element = Futile.atlasManager.GetElementWithName("HeadC" + num4.ToString());
+                // the head sprite uses the slugpup sprite rather than the slugCAT sprite.
+                sLeaser.sprites[self.startSprite + 5].x = vector3.x + vector6.x - camPos.x;
+                sLeaser.sprites[self.startSprite + 5].y = vector3.y + vector6.y - 2f - camPos.y;
+                Vector2 vector7 = Vector2.Lerp(self.legs.lastPos, self.legs.pos, timeStacker);
+                sLeaser.sprites[self.startSprite + 4].x = vector7.x - camPos.x;
+                sLeaser.sprites[self.startSprite + 4].y = vector7.y - camPos.y;
+                sLeaser.sprites[self.startSprite + 4].rotation = Custom.AimFromOneVectorToAnother(self.legsDirection, new Vector2(0f, 0f));
+                sLeaser.sprites[self.startSprite + 4].isVisible = true;
+                string elementName = "LegsAAir0";
+                sLeaser.sprites[self.startSprite + 4].element = Futile.atlasManager.GetElementWithName(elementName);
+                if (self.darkenFactor > 0f)
+                {
+                    for (int j = 0; j < self.numberOfSprites; j++)
+                    {
+                        Color color = Color.Lerp(new Color(0.39f, 0.25f, 0.25f), Color.gray, 0.4f);
+                        sLeaser.sprites[self.startSprite + j].color = new Color(Mathf.Min(1f, color.r *
+                            (1f - self.darkenFactor) + 0.01f), Mathf.Min(1f, color.g * (1f - self.darkenFactor) + 0.01f),
+                            Mathf.Min(1f, color.b * (1f - self.darkenFactor) + 0.01f));
+                    }
+                }
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, timeStacker, camPos);
+            }
+        }
+
+        private void DaddyGraphics_ApplyPalette(On.DaddyGraphics.orig_ApplyPalette orig, DaddyGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            orig(self, sLeaser, rCam, palette);
+            if (self.daddy.room != null && self != null && self.daddy != null &&
+                self.daddy.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                for (int i = 0; i < self.daddy.bodyChunks.Length; i++)
+                {
+                    if (self.daddy.HDmode)
+                    {
+                        sLeaser.sprites[self.BodySprite(i)].color = Color.Lerp(new Color(0.39f, 0.25f, 0.25f),
+                            Color.gray, 0.4f);
+                    }
+                    else
+                    {
+                        sLeaser.sprites[self.BodySprite(i)].color = new Color(0f, 0f, 0f);
+                    }
+                }
+                // this does not actually work, as it is redundant- instead, the sprites become invisible. fucked up
+            }
+        }
+
+        private void DaddyBubble_DrawSprites(On.DaddyBubble.orig_DrawSprites orig, DaddyBubble self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            orig(self, sLeaser, rCam, timeStacker, camPos);
+            if (self.room != null && self != null && !self.slatedForDeletetion &&
+                self.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                sLeaser.sprites[0].color = Color.Lerp(new Color(0f, 0f, 0f), new Color(1f, 0f, 0f), Mathf.InverseLerp(2f, 7f,
+                    (float)self.freeCounter + timeStacker));
+            }
+        }
+
+        private void DaddyCorruption_Update(On.DaddyCorruption.orig_Update orig, DaddyCorruption self, bool eu)
+        {
+            orig(self, eu);
+            if (self.room != null && self != null &&
+                self.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                self.effectColor = new Color(1f, 0f, 0f);
+                self.eyeColor = new Color(1f, 0f, 0f);
+                self.GWmode = false;
+            }
+        }
+
+        private void Bulb_ApplyPalette(On.DaddyCorruption.Bulb.orig_ApplyPalette orig, DaddyCorruption.Bulb self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.room != null && self.owner != null && self != null &&
+                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                sLeaser.sprites[self.firstSprite].color = new Color(0f, 0f, 0f);
+                if (self.leg != null)
+                {
+                    self.leg.graphic.ApplyPalette(sLeaser, rCam, palette);
+                }
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+
         private void DaddyDangleTube_ApplyPalette(On.DaddyGraphics.DaddyDangleTube.orig_ApplyPalette orig, DaddyGraphics.DaddyDangleTube self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if ()
+            if (self.owner.daddy.room != null && self.owner != null && self != null && self.owner.daddy != null &&
+                self.owner.daddy.room.game.session.characterStats.name.value == "NCRAdream")
             {
-                Color color = palette.blackColor;
-                if (this.owner.daddy.HDmode)
+                Color color = new Color(0f, 0f, 0f);
+                Color effect = new Color(1f, 0f, 0f);
+                if (self.owner.daddy.HDmode)
                 {
-                    color = Color.Lerp(PlayerGraphics.DefaultSlugcatColor(SlugcatStats.Name.Red), Color.gray, 0.4f);
+                    color = Color.Lerp(new Color(0.39f, 0.25f, 0.25f), Color.gray, 0.4f);
                 }
-                for (int i = 0; i < (sLeaser.sprites[this.firstSprite] as TriangleMesh).vertices.Length; i++)
+                for (int i = 0; i < (sLeaser.sprites[self.firstSprite] as TriangleMesh).vertices.Length; i++)
                 {
-                    float floatPos = Mathf.InverseLerp(0.3f, 1f, (float)i / (float)((sLeaser.sprites[this.firstSprite] as TriangleMesh).vertices.Length - 1));
-                    (sLeaser.sprites[this.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color, this.owner.EffectColor, this.OnTubeEffectColorFac(floatPos));
+                    float floatPos = Mathf.InverseLerp(0.3f, 1f, (float)i / (float)((sLeaser.sprites[self.firstSprite] as
+                        TriangleMesh).vertices.Length - 1));
+                    if (self.owner.daddy.HDmode)
+                    {
+                        (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color,
+                        new Color(0.39f, 0.25f, 0.25f), self.OnTubeEffectColorFac(floatPos));
+                    }
+                    else
+                    {
+                        (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color,
+                        effect, self.OnTubeEffectColorFac(floatPos));
+                    }
                 }
-                sLeaser.sprites[this.firstSprite].color = color;
-                for (int j = 0; j < this.bumps.Length; j++)
+                sLeaser.sprites[self.firstSprite].color = color;
+                for (int j = 0; j < self.bumps.Length; j++)
                 {
-                    sLeaser.sprites[this.firstSprite + 1 + j].color = Color.Lerp(color, this.owner.EffectColor, this.OnTubeEffectColorFac(this.bumps[j].pos.y));
+                    sLeaser.sprites[self.firstSprite + 1 + j].color = Color.Lerp(color, effect,
+                        self.OnTubeEffectColorFac(self.bumps[j].pos.y));
                 }
             }
             else
@@ -142,8 +651,17 @@ namespace NCRApenpals
                 {
                     float floatPos = Mathf.InverseLerp(0.3f, 1f, (float)i / (float)((sLeaser.sprites[self.firstSprite] as
                         TriangleMesh).vertices.Length - 1));
-                    (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color, effect,
-                        self.OnTubeEffectColorFac(floatPos));
+
+                    if (self.owner.daddy.HDmode)
+                    {
+                        (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color,
+                        new Color(0.39f, 0.25f, 0.25f), self.OnTubeEffectColorFac(floatPos));
+                    }
+                    else
+                    {
+                        (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color,
+                        effect, self.OnTubeEffectColorFac(floatPos));
+                    }
                 }
                 int num = 0;
                 for (int j = 0; j < self.bumps.Length; j++)
@@ -170,6 +688,7 @@ namespace NCRApenpals
             {
                 Color color = new Color(0f, 0f, 0f);
                 Color effect = new Color(1f, 0f, 0f);
+
                 if (self.owner.daddy.HDmode)
                 {
                     color = Color.Lerp(new Color(0.39f, 0.25f, 0.25f), Color.gray, 0.4f);
@@ -178,8 +697,17 @@ namespace NCRApenpals
                 {
                     float floatPos = Mathf.InverseLerp(0.3f, 1f, (float)i / (float)((sLeaser.sprites[self.firstSprite] as
                         TriangleMesh).vertices.Length - 1));
-                    (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color,
+
+                    if (self.owner.daddy.HDmode)
+                    {
+                        (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color,
+                        new Color(0.39f, 0.25f, 0.25f), self.OnTubeEffectColorFac(floatPos));
+                    }
+                    else
+                    {
+                        (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color,
                         effect, self.OnTubeEffectColorFac(floatPos));
+                    }
                 }
                 int num = 0;
                 for (int j = 0; j < self.bumps.Length; j++)
@@ -210,6 +738,7 @@ namespace NCRApenpals
                 self.tail[1] = new TailSegment(self.owner, 4f, 7f, self.tail[0], 0.8f, 1f, 0.6f, true);
                 self.tail[2] = new TailSegment(self.owner, 2.5f, 4.5f, self.tail[1], 0.82f, 1f, 0.5f, true);
                 self.tail[3] = new TailSegment(self.owner, 1f, 1f, self.tail[2], 1f, 1f, 0.5f, true);
+                // gives insomniac hunter its signature tail
             }
         }
 
@@ -239,7 +768,6 @@ namespace NCRApenpals
             if (self.owner.owner.room != null && self.owner != null && self != null && self.owner.owner != null &&
                 self.owner.owner.room.game.session.characterStats.name.value == "NCRAdream")
             {
-                self.renderColor = new Color(1f, 0f, 0f);
                 return new Color(1f, 0f, 0f);
             }
             else
@@ -356,7 +884,7 @@ namespace NCRApenpals
                 if (self.centipede.Glower != null)
                 {
                     self.centipede.Glower.color = Color.Lerp(new Color(palette.waterColor1.r, palette.waterColor1.g, palette.waterColor1.b,
-                        1f), new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value, 1f), 0.25f);
+                        1f), new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value, 1f), 0.75f);
                 }
                 self.blackColor = palette.blackColor;
                 for (int i = 0; i < sLeaser.sprites.Length; i++)
@@ -834,46 +1362,49 @@ namespace NCRApenpals
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
+
                 sLeaser.sprites[self.StalkSprite(0)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 self.StoredBlackColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                Color pixel = palette.texture.GetPixel(0, 5);
-                self.StoredPlantColor = pixel;
+                self.StoredPlantColor = palette.texture.GetPixel(0, 5);
+
                 for (int i = 0; i < (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length; i++)
                 {
                     float num = (float)i / (float)((sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length - 1);
-                    (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors[i] = Color.Lerp(palette.blackColor, pixel, 0.4f +
+                    (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors[i] = Color.Lerp(palette.blackColor,
+                        new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), 0.4f +
                         Mathf.Pow(1f - num, 0.5f) * 0.4f);
                 }
-                self.yellowColor = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), palette.blackColor, self.AbstractCob.dead 
-                    ? (0.95f + 0.5f * rCam.PaletteDarkness()) : (0.18f + 0.7f * rCam.PaletteDarkness()));
+
+                self.yellowColor = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
+                    palette.blackColor, self.AbstractCob.dead ? (0.95f + 0.5f * rCam.PaletteDarkness()) :
+                    (0.18f + 0.7f * rCam.PaletteDarkness()));
+
                 for (int j = 0; j < 2; j++)
                 {
                     for (int k = 0; k < (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length; k++)
                     {
                         float num2 = 1f - (float)k / (float)((sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length - 1);
                         (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors[k] = Color.Lerp(palette.blackColor,
-                            new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), Mathf.Pow(num2, 2.5f) * 0.4f);
+                            new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
+                            Mathf.Pow(num2, 2.5f) * 0.4f);
                     }
                 }
+
                 sLeaser.sprites[self.CobSprite].color = self.yellowColor;
-                Color color = self.yellowColor + new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value) *
-                    Mathf.Lerp(1f, 0.15f, rCam.PaletteDarkness());
-                if (self.AbstractCob.dead)
-                {
-                    color = Color.Lerp(self.yellowColor, pixel, 0.75f);
-                }
+
                 for (int l = 0; l < self.seedPositions.Length; l++)
                 {
-                    sLeaser.sprites[self.SeedSprite(l, 0)].color = self.yellowColor;
-                    sLeaser.sprites[self.SeedSprite(l, 1)].color = color;
+                    sLeaser.sprites[self.SeedSprite(l, 0)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    sLeaser.sprites[self.SeedSprite(l, 1)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                     sLeaser.sprites[self.SeedSprite(l, 2)].color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value,
-                        UnityEngine.Random.value), palette.blackColor, self.AbstractCob.dead ? 0.6f : 0.3f);
+                        UnityEngine.Random.value), palette.blackColor, self.AbstractCob.dead ? 0.3f : 0.2f);
                 }
                 for (int m = 0; m < self.leaves.GetLength(0); m++)
                 {
                     sLeaser.sprites[self.LeafSprite(m)].color = palette.blackColor;
                 }
-            UnityEngine.Random.state = state;
+                
+                UnityEngine.Random.state = state;
             }
             else
             {
@@ -884,12 +1415,17 @@ namespace NCRApenpals
         private void Player_UpdateMSC(On.Player.orig_UpdateMSC orig, Player self)
         {
             orig(self);
-            if (self.GetDreamCat().IsDream && self.room.gravity >= 0.55f && !self.submerged)
+            if ((self.GetDreamCat().IsDream || self.GetDreamCat().DreamActive) && self.room.gravity >= 0.55f && !self.submerged)
             {
                 // !submerged is necessary, as without that, dream is completely incapable of swimming.
                 // this as a whole enables dream to have the dream-like bouncing, fall slowly, jump higher, ect.
                 self.buoyancy = 0.96f;
                 self.customPlayerGravity = 0.35f;
+            }
+            else if ((self.GetDreamCat().IsDream || self.GetDreamCat().DreamActive) && self.GetDreamCat().InTheNightmare &&
+                self.room.gravity == 0f && !self.submerged)
+            {
+                self.customPlayerGravity = 1.2f;
             }
             else if (self.GetRealCat().IsReal)
             {
