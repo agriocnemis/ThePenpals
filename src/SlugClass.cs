@@ -33,6 +33,7 @@ namespace NCRApenpals
         {
             public bool IsReal;
             public bool RealActive;
+            public float Sanity;
 
             public NCRAreal()
             {

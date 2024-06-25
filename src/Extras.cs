@@ -13,7 +13,7 @@ using UnityEngine;
 #pragma warning restore CS0618
 
 
-internal static class Extras
+internal static class NCRAExtras
 {
     private static bool _initialized;
 

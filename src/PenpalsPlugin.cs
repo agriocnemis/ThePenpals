@@ -14,6 +14,7 @@ using CoralBrain;
 using System.Xml.Schema;
 using On;
 using IL;
+using System.Collections.Generic;
 
 namespace NCRApenpals
 {
@@ -25,7 +26,7 @@ namespace NCRApenpals
 
         public void OnEnable()
         {
-            On.RainWorld.OnModsInit += Extras.WrapInit(LoadResources);
+            On.RainWorld.OnModsInit += NCRAExtras.WrapInit(LoadResources);
             On.Player.ctor += Player_ctor;
             // initializing
 
@@ -68,11 +69,9 @@ namespace NCRApenpals
             On.CentipedeGraphics.ctor += CentipedeGraphics_ctor;
             On.SpiderGraphics.ApplyPalette += SpiderGraphics_ApplyPalette;
             On.BigSpiderGraphics.ApplyPalette += BigSpiderGraphics_ApplyPalette;
-            On.CicadaGraphics.ApplyPalette += CicadaGraphics_ApplyPalette;
-            On.DaddyGraphics.ApplyPalette += DaddyGraphics_ApplyPalette;
-
             // making dream colourful
             //testing atm if can be simplified -Y
+            // it cant :') - A
             Hook fancyoverseers = new Hook(typeof(global::OverseerGraphics).GetProperty("MainColor", BindingFlags.Instance |
                 BindingFlags.Public).GetGetMethod(), new Func<orig_OverseerMainColor,
                 OverseerGraphics, Color>(this.OverseerGraphics_MainColor_get));
@@ -84,6 +83,17 @@ namespace NCRApenpals
             On.OverseerGraphics.ColorOfSegment += OverseerGraphics_ColorOfSegment;
             // random overseers
 
+            On.DaddyGraphics.DrawSprites += DaddyGraphics_DrawSprites;
+            On.DaddyGraphics.Eye.GetColor += Eye_GetColor;
+            On.DaddyGraphics.DaddyTubeGraphic.ApplyPalette += DaddyTubeGraphic_ApplyPalette;
+            On.DaddyGraphics.DaddyDeadLeg.ApplyPalette += DaddyDeadLeg_ApplyPalette;
+            On.DaddyGraphics.DaddyDangleTube.ApplyPalette += DaddyDangleTube_ApplyPalette;
+            // daddy stuff. winks
+
+            On.DaddyGraphics.HunterDummy.ApplyPalette += HunterDummy_ApplyPalette;
+            On.DaddyGraphics.HunterDummy.ctor += HunterDummy_ctor;
+            // insomniac long legs
+
             //------------------------------------ REAL THINGS
             // omg so real
 
@@ -91,92 +101,162 @@ namespace NCRApenpals
             // rain does not instakill... or well. it SHOULDNT. it still does tho
         }
 
-        private void DaddyGraphics_ApplyPalette(On.DaddyGraphics.orig_ApplyPalette orig, DaddyGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        private void DaddyDangleTube_ApplyPalette(On.DaddyGraphics.DaddyDangleTube.orig_ApplyPalette orig, DaddyGraphics.DaddyDangleTube self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.owner.room != null && self.owner != null && self != null &&
-                            self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            if ()
             {
-                self.blackColor = new Color(0f, .73f, .06f, .8f);
-                Color color = new Color(0f, .73f, .06f, .8f);
-                
+                Color color = palette.blackColor;
+                if (this.owner.daddy.HDmode)
+                {
+                    color = Color.Lerp(PlayerGraphics.DefaultSlugcatColor(SlugcatStats.Name.Red), Color.gray, 0.4f);
+                }
+                for (int i = 0; i < (sLeaser.sprites[this.firstSprite] as TriangleMesh).vertices.Length; i++)
+                {
+                    float floatPos = Mathf.InverseLerp(0.3f, 1f, (float)i / (float)((sLeaser.sprites[this.firstSprite] as TriangleMesh).vertices.Length - 1));
+                    (sLeaser.sprites[this.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color, this.owner.EffectColor, this.OnTubeEffectColorFac(floatPos));
+                }
+                sLeaser.sprites[this.firstSprite].color = color;
+                for (int j = 0; j < this.bumps.Length; j++)
+                {
+                    sLeaser.sprites[this.firstSprite + 1 + j].color = Color.Lerp(color, this.owner.EffectColor, this.OnTubeEffectColorFac(this.bumps[j].pos.y));
+                }
             }
             else
             {
                 orig(self, sLeaser, rCam, palette);
             }
         }
-        //should make all Dream DLLs dark. if not. explodes
-        //I am exploding.
-        private void CicadaGraphics_ApplyPalette(On.CicadaGraphics.orig_ApplyPalette orig, CicadaGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
-        {
-            if (self.owner.room != null && self.owner != null && self != null &&
-                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
-            {
-                UnityEngine.Random.State state = UnityEngine.Random.state;
-                UnityEngine.Random.InitState(self.cicada.abstractCreature.ID.RandomSeed);
 
-                Color color;
-                if (self.cicada.gender)
+        private void DaddyDeadLeg_ApplyPalette(On.DaddyGraphics.DaddyDeadLeg.orig_ApplyPalette orig, DaddyGraphics.DaddyDeadLeg self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.owner.room != null && self.owner != null && self != null && self.owner.owner != null &&
+                self.owner.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                Color color = new Color(0f, 0f, 0f);
+                Color effect = new Color(1f, 0f, 0f);
+                if (self.owner.daddy.HDmode)
                 {
-                    color = Color.Lerp(HSLColor.Lerp(self.iVars.color, new HSLColor(self.cicada.iVars.color.hue,
-                        0f, 1f), 0.8f).rgb, palette.fogColor, 0.1f);
+                    color = Color.Lerp(new Color(0.39f, 0.25f, 0.25f), Color.gray, 0.4f);
                 }
-                else
+                for (int i = 0; i < (sLeaser.sprites[self.firstSprite] as TriangleMesh).vertices.Length; i++)
                 {
-                    color = Color.Lerp(HSLColor.Lerp(self.cicada.iVars.color, new HSLColor(self.cicada.iVars.color.hue,
-                        1f, 0f), 0.8f).rgb, palette.blackColor, 0.85f);
+                    float floatPos = Mathf.InverseLerp(0.3f, 1f, (float)i / (float)((sLeaser.sprites[self.firstSprite] as
+                        TriangleMesh).vertices.Length - 1));
+                    (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color, effect,
+                        self.OnTubeEffectColorFac(floatPos));
                 }
-                if (self.cicada.gender)
+                int num = 0;
+                for (int j = 0; j < self.bumps.Length; j++)
                 {
-                    self.shieldColor = Color.Lerp(color, new HSLColor(self.cicada.iVars.color.hue, 0.5f, 0.4f).rgb, 0.8f);
-                }
-                else
-                {
-                    self.shieldColor = Color.Lerp(color, new HSLColor(self.cicada.iVars.color.hue, 0.5f, 0.5f).rgb, 0.4f);
-                }
-                if (self.cicada.gender)
-                {
-                    sLeaser.sprites[self.HighlightSprite].color = Color.Lerp(color, new Color(1f, 1f, 1f), 0.7f);
-                }
-                else
-                {
-                    sLeaser.sprites[self.HighlightSprite].color = Color.Lerp(color, self.cicada.iVars.color.rgb, 0.07f);
-                }
-                sLeaser.sprites[self.BodySprite].color = color;
-                sLeaser.sprites[self.HeadSprite].color = color;
-                sLeaser.sprites[self.ShieldSprite].color = self.shieldColor;
-                for (int i = 0; i < 2; i++)
-                {
-                    for (int j = 0; j < 2; j++)
+                    sLeaser.sprites[self.firstSprite + 1 + j].color = Color.Lerp(color, effect, self.OnTubeEffectColorFac(self.bumps[j].pos.y));
+                    if (self.bumps[j].eyeSize > 0f)
                     {
-                        sLeaser.sprites[self.WingSprite(i, j)].color = self.shieldColor;
-                        sLeaser.sprites[self.TentacleSprite(i, j)].color = color;
+                        sLeaser.sprites[self.firstSprite + 1 + self.bumps.Length + num].color = (self.owner.colorClass ?
+                            (effect * Mathf.Lerp(0.5f, 0.2f, self.deadness)) : color);
+                        num++;
                     }
                 }
-                if (self.cicada.gender)
-                {
-                    self.eyeColor = Color.Lerp(color, palette.blackColor, 0.8f);
-                    sLeaser.sprites[self.EyesASprite].color = self.eyeColor;
-                    FSprite fsprite = sLeaser.sprites[self.EyesBSprite];
-                    Cicada.IndividualVariations iVars = self.iVars;
-                    fsprite.color = iVars.color.rgb;
-                }
-                else
-                {
-                    Cicada.IndividualVariations iVars = self.iVars;
-                    self.eyeColor = iVars.color.rgb;
-                    sLeaser.sprites[self.EyesASprite].color = self.eyeColor;
-                    sLeaser.sprites[self.EyesBSprite].color = palette.blackColor;
-                }
-                self.ApplyPalette(sLeaser, rCam, palette);
-
-
-                UnityEngine.Random.state = state;
             }
             else
             {
                 orig(self, sLeaser, rCam, palette);
             }
+        }
+
+        private void DaddyTubeGraphic_ApplyPalette(On.DaddyGraphics.DaddyTubeGraphic.orig_ApplyPalette orig, DaddyGraphics.DaddyTubeGraphic self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.owner.room != null && self.owner != null && self != null && self.owner.owner != null &&
+                self.owner.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                Color color = new Color(0f, 0f, 0f);
+                Color effect = new Color(1f, 0f, 0f);
+                if (self.owner.daddy.HDmode)
+                {
+                    color = Color.Lerp(new Color(0.39f, 0.25f, 0.25f), Color.gray, 0.4f);
+                }
+                for (int i = 0; i < (sLeaser.sprites[self.firstSprite] as TriangleMesh).vertices.Length; i++)
+                {
+                    float floatPos = Mathf.InverseLerp(0.3f, 1f, (float)i / (float)((sLeaser.sprites[self.firstSprite] as
+                        TriangleMesh).vertices.Length - 1));
+                    (sLeaser.sprites[self.firstSprite] as TriangleMesh).verticeColors[i] = Color.Lerp(color,
+                        effect, self.OnTubeEffectColorFac(floatPos));
+                }
+                int num = 0;
+                for (int j = 0; j < self.bumps.Length; j++)
+                {
+                    sLeaser.sprites[self.firstSprite + 1 + j].color = Color.Lerp(color, effect,
+                        self.OnTubeEffectColorFac(self.bumps[j].pos.y));
+                    if (self.bumps[j].eyeSize > 0f)
+                    {
+                        sLeaser.sprites[self.firstSprite + 1 + self.bumps.Length + num].color =
+                            (self.owner.colorClass ? effect : color);
+                        num++;
+                    }
+                }
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+
+        private void HunterDummy_ctor(On.DaddyGraphics.HunterDummy.orig_ctor orig, DaddyGraphics.HunterDummy self, DaddyGraphics dg, int startSprite)
+        {
+            orig(self, dg, startSprite);
+            if (self.owner.owner.room != null && self.owner != null && self != null && self.owner.owner != null &&
+                self.owner.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                self.tail[0] = new TailSegment(self.owner, 5.5f, 4f, null, 0.85f, 1f, 1f, true);
+                self.tail[1] = new TailSegment(self.owner, 4f, 7f, self.tail[0], 0.8f, 1f, 0.6f, true);
+                self.tail[2] = new TailSegment(self.owner, 2.5f, 4.5f, self.tail[1], 0.82f, 1f, 0.5f, true);
+                self.tail[3] = new TailSegment(self.owner, 1f, 1f, self.tail[2], 1f, 1f, 0.5f, true);
+            }
+        }
+
+        private void HunterDummy_ApplyPalette(On.DaddyGraphics.HunterDummy.orig_ApplyPalette orig, DaddyGraphics.HunterDummy self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.owner.owner.room != null && self.owner != null && self != null && self.owner.owner != null &&
+                self.owner.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                Color color = Color.Lerp(new Color(0.39f, 0.25f, 0.25f), Color.gray, 0.4f);
+                // insomniac body colour. may add statements for if insomniac has custom colours?
+                Color blackColor = new Color(0.96f, 0.83f, 0.76f);
+                // insomniac eye colour.
+                for (int i = 0; i < self.numberOfSprites - 1; i++)
+                {
+                    sLeaser.sprites[self.startSprite + i].color = color;
+                }
+                sLeaser.sprites[self.startSprite + 5].color = blackColor;
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+
+        private Color Eye_GetColor(On.DaddyGraphics.Eye.orig_GetColor orig, DaddyGraphics.Eye self)
+        {
+            if (self.owner.owner.room != null && self.owner != null && self != null && self.owner.owner != null &&
+                self.owner.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                self.renderColor = new Color(1f, 0f, 0f);
+                return new Color(1f, 0f, 0f);
+            }
+            else
+            {
+                return orig(self);
+            }
+        }
+
+        private void DaddyGraphics_DrawSprites(On.DaddyGraphics.orig_DrawSprites orig, DaddyGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            if (self.owner.room != null && self.owner != null && self != null &&
+                self.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                self.blackColor = new Color(1f, 0f, 0f);
+                // this alters the colour the eyes turn when "blinking". this does NOT change anything else.
+            }
+            orig(self, sLeaser, rCam, timeStacker, camPos);
         }
 
         private void BigSpiderGraphics_ApplyPalette(On.BigSpiderGraphics.orig_ApplyPalette orig, BigSpiderGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -515,7 +595,7 @@ namespace NCRApenpals
         private void PoleMimicGraphics_DrawSprites(On.PoleMimicGraphics.orig_DrawSprites orig, PoleMimicGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             orig(self, sLeaser, rCam, timeStacker, camPos);
-            if (self != null && self.owner != null && !self.owner.slatedForDeletetion &&
+            if (self != null && self.owner != null && !self.owner.slatedForDeletetion && self.owner.room != null &&
                 // makes sure base values arent null
                 self.owner.room.game.session.characterStats.name.value == "NCRAdream")
             {
@@ -565,20 +645,21 @@ namespace NCRApenpals
             orig(self, ow);
             if ((self.owner as Player).GetDreamCat().IsDream)
             {
-                self.tail[0] = new TailSegment(self, 6f, 4.5f, null, 0.85f, 1f, 1f, true);
-                self.tail[1] = new TailSegment(self, 4f, 7.5f, self.tail[0], 0.85f, 0.45f, 0.5f, true);
-                self.tail[2] = new TailSegment(self, 3f, 7f, self.tail[1], 0.85f, 0.4f, 0.5f, true);
-                self.tail[3] = new TailSegment(self, 9f, 7f, self.tail[2], 0.80f, 0.4f, 0.5f, true);
+                self.tail[0] = new TailSegment(self, 7f, 4.5f, null, 0.85f, 1f, 1f, true);
+                self.tail[1] = new TailSegment(self, 5f, 7.5f, self.tail[0], 0.85f, 0.45f, 0.5f, true);
+                self.tail[2] = new TailSegment(self, 4f, 7f, self.tail[1], 0.85f, 0.4f, 0.5f, true);
+                self.tail[3] = new TailSegment(self, 9.5f, 8f, self.tail[2], 0.92f, 0.4f, 0.5f, true);
                 // this gives dream its signature tail curl. in all honesty im not sure WHY it does, but hey
             }
             else if ((self.owner as Player).GetRealCat().IsReal)
             {
                 self.tail[0] = new TailSegment(self, 5.5f, 4f, null, 0.85f, 1f, 1f, true);
-                self.tail[1] = new TailSegment(self, 4f, 7f, self.tail[0], 0.90f, 1f, 0.6f, true);
-                self.tail[2] = new TailSegment(self, 2.5f, 4.5f, self.tail[1], 0.85f, 1f, 0.5f, true);
-                self.tail[3] = new TailSegment(self, 1f, 3.5f, self.tail[2], 0.85f, 1f, 0.5f, true);
+                self.tail[1] = new TailSegment(self, 4f, 7f, self.tail[0], 0.8f, 1f, 0.6f, true);
+                self.tail[2] = new TailSegment(self, 2.5f, 4.5f, self.tail[1], 0.82f, 1f, 0.5f, true);
+                self.tail[3] = new TailSegment(self, 1f, 1f, self.tail[2], 1f, 1f, 0.5f, true);
                 // self.tail[value] = tailsegment(owner, radius?, connectionradius?, connectedtailsegment[value],
                 // surfacefriction, airfriction, affect on previous segment, pullinpreviousposition)
+
                 // this makes reals tail appear slightly stumpier (despite it actually being the same length)
             }
         }
