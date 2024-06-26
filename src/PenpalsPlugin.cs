@@ -90,14 +90,20 @@ namespace NCRApenpals
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             
 
+            
+
+
+
+            // ----------------------------------- DREAM THINGS ------------------------------------
+            On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
+            // zero-gravity oracle swarmers always
+
             On.FlyGraphics.ApplyPalette += FlyGraphics_ApplyPalette;
             On.PoleMimicGraphics.ApplyPalette += PoleMimicGraphics_ApplyPalette;
             On.SpiderGraphics.ApplyPalette += SpiderGraphics_ApplyPalette;
             On.WormGrass.Worm.ApplyPalette += Worm_ApplyPalette;
             On.SeedCob.ApplyPalette += SeedCob_ApplyPalette;
             On.GreenSparks.GreenSpark.ApplyPalette += GreenSpark_ApplyPalette;
-            // grayscaling applied
-            // the below still need alterations
             On.Lantern.TerrainImpact += Lantern_TerrainImpact;
             On.FlyLure.ApplyPalette += FlyLure_ApplyPalette;
             On.Lantern.ApplyPalette += Lantern_ApplyPalette;
@@ -121,12 +127,6 @@ namespace NCRApenpals
             On.OverseerGraphics.InitiateSprites -= OverseerGraphics_RemoveSprites;
             On.OverseerGraphics.ColorOfSegment += OverseerGraphics_ColorOfSegment;
             // random overseers
-
-
-
-            // ----------------------------------- DREAM THINGS ------------------------------------
-            On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
-            // zero-gravity oracle swarmers always
 
             // nightmare-exclusive code below!
 
@@ -183,7 +183,7 @@ namespace NCRApenpals
                 grayshader.anchorY = 0f;
                 grayshader.alpha = 1f;
 
-                self.ReturnFContainer("GrabShaders").AddChild(grayshader);
+                self.ReturnFContainer("Bloom").AddChild(grayshader);
             }
             orig(self);
         }
@@ -197,7 +197,7 @@ namespace NCRApenpals
         private void Worm_ApplyPalette(On.WormGrass.Worm.orig_ApplyPalette orig, WormGrass.Worm self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
             if (self.room != null && self != null &&
-                (self.room.game.session.characterStats.name.value == "NCRAdream" || self.room.game.session.characterStats.name.value == "NCRAreal"))
+                self.room.game.session.characterStats.name.value == "NCRAdream")
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
 
@@ -205,37 +205,14 @@ namespace NCRApenpals
                 Color color2 = new Color(0f, 0f, 0f, 1f);
 
 
-                if (self.room.game.session.characterStats.name.value == "NCRAdream")
-                {
+                
                     color = rCam.PixelColorAtCoordinate(self.belowGroundPos) + new Color(UnityEngine.Random.value,
                         UnityEngine.Random.value, UnityEngine.Random.value);
                     color2 = Color.Lerp(palette.texture.GetPixel(self.color, 3), new Color(UnityEngine.Random.value, UnityEngine.Random.value,
                         UnityEngine.Random.value), self.iFac * 0.5f);
 
                     sLeaser.sprites[1].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                }
-                if (self.room.game.session.characterStats.name.value == "NCRAreal")
-                {
-                    color.r = 0.299f * rCam.PixelColorAtCoordinate(self.belowGroundPos).r + 0.587f *
-                        rCam.PixelColorAtCoordinate(self.belowGroundPos).g + 0.114f * rCam.PixelColorAtCoordinate(self.belowGroundPos).b;
-                    color.b = color.r;
-                    color.g = color.r;
-
-                    Color grayscale = new Color(0f, 0f, 0f, 1f);
-                    grayscale.r = 0.299f * palette.texture.GetPixel(self.color, 3).r + 0.587f * palette.texture.GetPixel(self.color, 3).g +
-                        palette.texture.GetPixel(self.color, 3).b;
-                    grayscale.g = grayscale.r;
-                    grayscale.b = grayscale.g;
-
-                    color2 = Color.Lerp(grayscale, new Color(0.2f, 0.2f, 0.2f), self.iFac * 0.5f);
-
-
-                    Color grayscale2 = new Color(0f, 0f, 0f, 1f);
-                    grayscale2.r = 0.299f * 0.2f;
-                    grayscale2.g = 0;
-                    grayscale2.b = 0.114f;
-                    sLeaser.sprites[1].color = grayscale2;
-                }
+                
 
                 Room room = self.room;
                 if (((room != null) ? room.world.region : null) != null)
@@ -246,23 +223,11 @@ namespace NCRApenpals
                         float num = 1000f;
                         float num2 = (float)self.room.world.rainCycle.dayNightCounter / num;
 
-                        if (self.room.game.session.characterStats.name.value == "NCRAdream")
-                        {
                             color = Color.Lerp(color, Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value,
                                 UnityEngine.Random.value), color2, 0.5f), num2 * 0.04f);
                             color2 = Color.Lerp(color2, new Color(UnityEngine.Random.value, UnityEngine.Random.value,
                                 UnityEngine.Random.value), num2 * 0.4f);
-                        }
-                        else
-                        {
-                            Color newcol = new Color(0f, 0f, 0f, 1f);
-                            newcol.r = 0.299f * 0.17f + 0.587f * 0.38f + 0.114f * 0.17f;
-                            newcol.g = 0.299f * 0.17f + 0.587f * 0.38f + 0.114f * 0.17f;
-                            newcol.b = 0.299f * 0.17f + 0.587f * 0.38f + 0.114f * 0.17f;
-
-                            color = Color.Lerp(color, Color.Lerp(newcol, color2, 0.5f), num2 * 0.04f);
-                            color2 = Color.Lerp(color2, newcol, num2 * 0.4f);
-                        }
+                        
                     }
                 }
                 for (int i = 0; i < self.segments.Length; i++)
@@ -1817,17 +1782,15 @@ namespace NCRApenpals
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
                 self.blackColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                self.mimicColor = palette.blackColor;
+                self.mimicColor = new Color(0f, 0f, 0f);
                 UnityEngine.Random.state = state;
             }
             else if (self != null && self.owner != null && !self.owner.slatedForDeletetion &&
                 self.owner.room.game.session.characterStats.name.value == "NCRAreal")
             {
-                UnityEngine.Random.State state = UnityEngine.Random.state;
-                UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
+                // this should be kept, as it turns mimics to pure black.
                 self.blackColor = new Color(0.01f, 0.01f, 0.01f);
                 self.mimicColor = new Color(0f, 0f, 0f);
-                UnityEngine.Random.state = state;
             }
             else
             {
@@ -1848,17 +1811,6 @@ namespace NCRApenpals
                 self.UpdateColor(sLeaser, false);
 
                 UnityEngine.Random.state = state;
-            }
-            else if (self != null && self.room != null && !self.slatedForDeletetion &&
-                self.room.game.session.characterStats.name.value == "NCRAreal")
-            {
-                Color grayscale = new Color();
-                grayscale.r = 0.299f * self.color.r;
-                grayscale.g = 0.587f * self.color.g;
-                grayscale.b = 0.114f * self.color.b;
-
-                self.color = Color.Lerp(grayscale, palette.fogColor, UnityEngine.Random.value);
-                self.UpdateColor(sLeaser, false);
             }
             else
             {
@@ -1894,10 +1846,8 @@ namespace NCRApenpals
         private void SeedCob_ApplyPalette(On.SeedCob.orig_ApplyPalette orig, SeedCob self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
             if (self != null && self.room != null && !self.slatedForDeletetion &&
-                self.room.game.session.characterStats.name.value == "NCRAdream" || self.room.game.session.characterStats.name.value == "NCRAreal")
+                self.room.game.session.characterStats.name.value == "NCRAdream")
             {
-                if (self.room.game.session.characterStats.name.value == "NCRAdream")
-                {
                     UnityEngine.Random.State state = UnityEngine.Random.state;
                     UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
 
@@ -1943,67 +1893,7 @@ namespace NCRApenpals
                     }
 
                     UnityEngine.Random.state = state;
-                }
-                else
-                {
-                    Color blackcol = new Color(0f, 0f, 0f, 1f);
-                    blackcol.g = 0.299f * palette.blackColor.r + 0.587f * palette.blackColor.g + 0.114f * palette.blackColor.b;
-                    blackcol.r = blackcol.g;
-                    blackcol.b = blackcol.r;
-
-                    sLeaser.sprites[self.StalkSprite(0)].color = blackcol;
-                    self.StoredBlackColor = blackcol;
-
-
-                    Color pixel = new Color(0f, 0f, 0f, 1f);
-                    pixel.r = 0.299f * palette.texture.GetPixel(0, 5).r + 0.587f * palette.texture.GetPixel(0, 5).g + 0.114f *
-                        palette.texture.GetPixel(0, 5).b;
-                    pixel.g = pixel.r;
-                    pixel.b = pixel.g;
-
-
-                    self.StoredPlantColor = pixel;
-                    for (int i = 0; i < (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length; i++)
-                    {
-                        float num = (float)i / (float)((sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length - 1);
-                        (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors[i] = Color.Lerp(blackcol, pixel,
-                            0.4f + Mathf.Pow(1f - num, 0.5f) * 0.4f);
-                    }
-
-                    Color yel = new Color(0f, 0f, 0f, 1f);
-                    yel.r = 0.299f * 0.9f + 0.587f * 0.83f + 0.114f * 0.5f;
-                    yel.g = yel.r;
-                    yel.b = yel.r;
-
-                    self.yellowColor = Color.Lerp(yel, blackcol, self.AbstractCob.dead ? (0.95f + 0.5f * rCam.PaletteDarkness()) :
-                        (0.18f + 0.7f * rCam.PaletteDarkness()));
-                    for (int j = 0; j < 2; j++)
-                    {
-                        for (int k = 0; k < (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length; k++)
-                        {
-                            float f = 1f - (float)k / (float)((sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length - 1);
-                            (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors[k] =
-                                Color.Lerp(blackcol, new Color(0.299f, 0.299f, 0.299f), Mathf.Pow(f, 2.5f) * 0.4f);
-                        }
-                    }
-                    sLeaser.sprites[self.CobSprite].color = self.yellowColor;
-                    Color color = self.yellowColor + new Color(0.3f, 0.3f, 0.3f) * Mathf.Lerp(1f, 0.15f, rCam.PaletteDarkness());
-                    if (self.AbstractCob.dead)
-                    {
-                        color = Color.Lerp(self.yellowColor, pixel, 0.75f);
-                    }
-                    for (int l = 0; l < self.seedPositions.Length; l++)
-                    {
-                        sLeaser.sprites[self.SeedSprite(l, 0)].color = self.yellowColor;
-                        sLeaser.sprites[self.SeedSprite(l, 1)].color = color;
-                        sLeaser.sprites[self.SeedSprite(l, 2)].color = Color.Lerp(new Color(0.299f, 0.299f, 0.299f), blackcol,
-                            self.AbstractCob.dead ? 0.6f : 0.3f);
-                    }
-                    for (int m = 0; m < self.leaves.GetLength(0); m++)
-                    {
-                        sLeaser.sprites[self.LeafSprite(m)].color = blackcol;
-                    }
-                }
+                
             }
             else
             {
@@ -2054,7 +1944,7 @@ namespace NCRApenpals
                 self.GetRealCat().IsReal = true;
             }
             // ---------------------------------------------------- REAL STORY ----------------------------------------------------
-            if (self.room.game.session.characterStats.name.value == "NCRreal")
+            if (self.room.game.session.characterStats.name.value == "NCRAreal")
             {
                 self.GetRealCat().RealActive = true;
             }
@@ -2063,10 +1953,9 @@ namespace NCRApenpals
         private void GreenSpark_ApplyPalette(On.GreenSparks.GreenSpark.orig_ApplyPalette orig, GreenSparks.GreenSpark self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
             if (self != null && self.room != null && !self.slatedForDeletetion &&
-                self.room.game.session.characterStats.name.value == "NCRAdream" || self.room.game.session.characterStats.name.value == "NCRAreal")
+                self.room.game.session.characterStats.name.value == "NCRAdream")
             {
-                if (self.room.game.session.characterStats.name.value == "NCRAdream")
-                {
+                
                     UnityEngine.Random.State state = UnityEngine.Random.state;
 
                     self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
@@ -2079,22 +1968,7 @@ namespace NCRApenpals
                         UnityEngine.Random.value, UnityEngine.Random.value), Mathf.InverseLerp(0f, 5f, self.depth));
 
                     UnityEngine.Random.state = state;
-                }
-                else
-                {
-                    Color grayscale = new Color(0f, 0f, 0f, 1f);
-                    grayscale.r = 0.299f * self.col.r + 0.587f * self.col.g + 0.114f * self.col.b;
-                    grayscale.b = grayscale.r;
-                    grayscale.g = grayscale.r;
-
-                    self.col = grayscale;
-                    if (self.depth <= 0f)
-                    {
-                        sLeaser.sprites[0].color = self.col;
-                        return;
-                    }
-                    sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, self.col, Mathf.InverseLerp(0f, 5f, self.depth));
-                }
+                
             }
             else orig(self, sLeaser, rCam, palette);
         }
