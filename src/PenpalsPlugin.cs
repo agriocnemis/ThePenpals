@@ -192,7 +192,10 @@ namespace NCRApenpals
         private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
             orig(self);
-            LoadShaders(self);
+            if (self.Shaders["ncrgray"] == null)
+            {
+                LoadShaders(self);
+            }
         }
 
         private void Worm_ApplyPalette(On.WormGrass.Worm.orig_ApplyPalette orig, WormGrass.Worm self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
