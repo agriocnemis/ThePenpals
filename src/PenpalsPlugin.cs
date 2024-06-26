@@ -19,43 +19,7 @@ namespace NCRApenpals
         private const string MOD_ID = "neoncityrain-agriocnemis.penpals";
         public delegate Color orig_OverseerMainColor(global::OverseerGraphics self);
 
-        public static void LoadShaders(RainWorld rainWorld)
-        {
-            UnityEngine.Debug.Log("Loading Insomniac Shader...");
-
-            string path = AssetManager.ResolveFilePath("shaders/GrayscaleGrab");
-            if (!File.Exists(path))
-            {
-                UnityEngine.Debug.Log("Can't find shader path: " + path);
-            }
-
-            AssetBundle bundle = AssetBundle.LoadFromFile(path);
-            if (bundle == null)
-            {
-                UnityEngine.Debug.Log("File is not found in path: " + path);
-            }
-
-            Shader shader = bundle.LoadAsset<Shader>("GrayscaleGrab");
-            if (shader == null)
-            {
-                UnityEngine.Debug.Log("Shader not found in path: " + path + ". Cancelling.");
-            }
-            else
-            {
-                rainWorld.Shaders["ncrgray"] = FShader.CreateShader("GrayscaleGrab", shader);
-                // this is called via rainWorld.Shaders["ncrgray"]
-
-                if (rainWorld.Shaders["ncrgray"] == null)
-                {
-                    UnityEngine.Debug.Log("Createshader failed. Dying");
-                }
-                else
-                {
-
-                    UnityEngine.Debug.Log("Insomniac Shader loaded properly for once!");
-                }
-            }
-        }
+        
 
         public void OnEnable()
         {
@@ -166,6 +130,44 @@ namespace NCRApenpals
             // night cycles
 
             On.RoomCamera.ApplyPalette += RoomCamera_ApplyPalette;
+        }
+
+        public static void LoadShaders(RainWorld rainWorld)
+        {
+            UnityEngine.Debug.Log("Loading Insomniac Shader...");
+
+            string path = AssetManager.ResolveFilePath("shaders/GrayscaleGrab");
+            if (!File.Exists(path))
+            {
+                UnityEngine.Debug.Log("Can't find shader path: " + path);
+            }
+
+            AssetBundle bundle = AssetBundle.LoadFromFile(path);
+            if (bundle == null)
+            {
+                UnityEngine.Debug.Log("File is not found in path: " + path);
+            }
+
+            Shader shader = bundle.LoadAsset<Shader>("GrayscaleGrab");
+            if (shader == null)
+            {
+                UnityEngine.Debug.Log("Shader not found in path: " + path + ". Cancelling.");
+            }
+            else
+            {
+                rainWorld.Shaders["ncrgray"] = FShader.CreateShader("GrayscaleGrab", shader);
+                // this is called via rainWorld.Shaders["ncrgray"]
+
+                if (rainWorld.Shaders["ncrgray"] == null)
+                {
+                    UnityEngine.Debug.Log("Createshader failed. Dying");
+                }
+                else
+                {
+
+                    UnityEngine.Debug.Log("Insomniac Shader loaded properly for once!");
+                }
+            }
         }
 
         private void RoomCamera_ApplyPalette(On.RoomCamera.orig_ApplyPalette orig, RoomCamera self)
