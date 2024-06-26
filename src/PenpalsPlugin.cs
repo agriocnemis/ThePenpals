@@ -1760,15 +1760,18 @@ namespace NCRApenpals
 
         private void FlyGraphics_ApplyPalette(On.FlyGraphics.orig_ApplyPalette orig, FlyGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self != null && self.owner != null && !self.owner.slatedForDeletetion &&
+            if (self != null && self.owner != null && !self.owner.slatedForDeletetion && self.owner.room != null &&
                 // makes sure base values arent null
                 self.owner.room.game.session.characterStats.name.value == "NCRAdream")
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.fly.abstractCreature.ID.RandomSeed);
+
                 for (int i = 0; i < 3; i++)
                 {
                     sLeaser.sprites[i].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 }
+
                 UnityEngine.Random.state = state;
             }
             else orig(self, sLeaser, rCam, palette);
@@ -1782,16 +1785,19 @@ namespace NCRApenpals
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
+
                 self.blackColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                self.mimicColor = new Color(0f, 0f, 0f);
+                self.mimicColor = Color.Lerp(palette.blackColor, palette.fogColor, palette.fogAmount * 0.13333334f);
+
                 UnityEngine.Random.state = state;
             }
             else if (self != null && self.owner != null && !self.owner.slatedForDeletetion &&
                 self.owner.room.game.session.characterStats.name.value == "NCRAreal")
             {
-                // this should be kept, as it turns mimics to pure black.
                 self.blackColor = new Color(0.01f, 0.01f, 0.01f);
-                self.mimicColor = new Color(0f, 0f, 0f);
+                // the colour used when annoyed
+                self.mimicColor = Color.Lerp(new Color(0f, 0f, 0f), palette.blackColor, palette.fogAmount * 0.13333334f);
+                // the colour used when hiding
             }
             else
             {
