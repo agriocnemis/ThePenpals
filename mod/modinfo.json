@@ -4,6 +4,6 @@
 	"version": "0.0.0",
 	"authors": "NeonCityRain, Agriocnemis",
 	"description": "A template for making SlugBase mods.",
-	"requirements": [ "slime-cubed.slugbase", "crs", "regionkit" ],
-	"requirements_names": [ "SlugBase", "CRS", "RegionKit" ]
+	"requirements": [ "slime-cubed.slugbase", "crs", "regionkit", "moreslugcats" ],
+	"requirements_names": [ "SlugBase", "CRS", "RegionKit", "More Slugcats" ]
 }

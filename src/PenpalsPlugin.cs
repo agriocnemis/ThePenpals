@@ -19,7 +19,6 @@ namespace NCRApenpals
         private const string MOD_ID = "neoncityrain-agriocnemis.penpals";
         public delegate Color orig_OverseerMainColor(global::OverseerGraphics self);
 
-
         public static void LoadShaders(RainWorld rainWorld)
         {
             UnityEngine.Debug.Log("Loading Insomniac Shader...");
@@ -159,7 +158,7 @@ namespace NCRApenpals
             On.GlobalRain.DeathRain.DeathRainUpdate += DeathRain_DeathRainUpdate;
             // rain does not instakill and instead cycles back around to the precycle.
 
-            //On.RainCycle.ctor += RainCycle_ctor;
+            On.RainCycle.ctor += RainCycle_ctor;
             // every cycle has a precycle
 
             On.RoomCamera.UpdateDayNightPalette += RoomCamera_UpdateDayNightPalette;
