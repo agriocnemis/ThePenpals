@@ -176,15 +176,20 @@ namespace NCRApenpals
                 self.room.game.session.characterStats.name.value == "NCRAreal")
             {
                 FSprite grayshader = new FSprite("Futile_White", true);
-
+                // square lol
                 grayshader.shader = self.game.rainWorld.Shaders["ncrgray"];
                 grayshader.scaleX = self.game.rainWorld.options.ScreenSize.x + 5f;
                 grayshader.scaleY = self.game.rainWorld.options.ScreenSize.y + 5f;
+                // makes the grayshaders scale 5 pixels larger than the screen size to account for any screenshakes
+                // or camera movement. should scale with sbcamerascroll, but this is untested as of now
                 grayshader.anchorX = 0f;
                 grayshader.anchorY = 0f;
+                // anchors it to the center of the screen
                 grayshader.alpha = 1f;
+                // 100% grayscale
 
                 self.ReturnFContainer("Bloom").AddChild(grayshader);
+                // attached to the "Bloom" layer. this means it will be overtop of most effects, including shortcuts and water
             }
             orig(self);
         }
@@ -192,10 +197,7 @@ namespace NCRApenpals
         private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
             orig(self);
-            if (self.Shaders["ncrgray"] == null)
-            {
-                LoadShaders(self);
-            }
+            LoadShaders(self);
         }
 
         private void Worm_ApplyPalette(On.WormGrass.Worm.orig_ApplyPalette orig, WormGrass.Worm self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -205,17 +207,12 @@ namespace NCRApenpals
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
 
-                Color color = new Color(0f, 0f, 0f, 1f);
-                Color color2 = new Color(0f, 0f, 0f, 1f);
+                Color color = rCam.PixelColorAtCoordinate(self.belowGroundPos) + new Color(UnityEngine.Random.value,
+                    UnityEngine.Random.value, UnityEngine.Random.value);
+                Color color2 = Color.Lerp(palette.texture.GetPixel(self.color, 3), new Color(UnityEngine.Random.value,
+                    UnityEngine.Random.value, UnityEngine.Random.value), self.iFac * 0.5f);
 
-
-                
-                    color = rCam.PixelColorAtCoordinate(self.belowGroundPos) + new Color(UnityEngine.Random.value,
-                        UnityEngine.Random.value, UnityEngine.Random.value);
-                    color2 = Color.Lerp(palette.texture.GetPixel(self.color, 3), new Color(UnityEngine.Random.value, UnityEngine.Random.value,
-                        UnityEngine.Random.value), self.iFac * 0.5f);
-
-                    sLeaser.sprites[1].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                sLeaser.sprites[1].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
                 
 
                 Room room = self.room;
