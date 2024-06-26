@@ -1,20 +1,15 @@
 ﻿using BepInEx;
 using UnityEngine;
-using SlugBase.Features;
 using MoreSlugcats;
-using CustomRegions;
 using RWCustom;
-using NCRApenpals;
-using DevInterface;
 using HUD;
 using MonoMod.RuntimeDetour;
 using System.Reflection;
 using System;
 using CoralBrain;
-using System.Xml.Schema;
-using On;
-using IL;
 using System.Collections.Generic;
+using System.IO;
+
 
 namespace NCRApenpals
 {
@@ -23,6 +18,16 @@ namespace NCRApenpals
     {
         private const string MOD_ID = "neoncityrain-agriocnemis.penpals";
         public delegate Color orig_OverseerMainColor(global::OverseerGraphics self);
+
+
+        public static void LoadShaders(RainWorld rainWorld)
+        {
+            string path = AssetManager.ResolveFilePath("GrayscaleGrab");
+            AssetBundle bundle = AssetBundle.LoadFromFile(path);
+            Shader shader = bundle.LoadAsset<Shader>("Vigaro/GrayscaleGrab");
+            rainWorld.Shaders["VigaroGrayscaleGrab"] = FShader.CreateShader("VigaroGrayscaleGrab", shader);
+            // this is called via self.game.rainWorld.Shaders["Vigaro/GrayscaleGrab"]
+        }
 
         public void OnEnable()
         {
@@ -53,18 +58,18 @@ namespace NCRApenpals
             On.SSOracleBehavior.SSOracleMeetWhite.Update += SSOracleMeetWhite_Update;
             // fixing oracle issues
 
-            // ----------------------------------- DREAM THINGS ------------------------------------
-            On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
-            // zero-gravity oracles always
+            
 
-            On.FireFly.ctor += FireFly_ctor;
-            On.GreenSparks.GreenSpark.ApplyPalette += GreenSpark_ApplyPalette;
-            On.GreenSparks.GreenSpark.Update += GreenSpark_Update;
+            On.FlyGraphics.ApplyPalette += FlyGraphics_ApplyPalette;
+            On.PoleMimicGraphics.ApplyPalette += PoleMimicGraphics_ApplyPalette;
+            On.SpiderGraphics.ApplyPalette += SpiderGraphics_ApplyPalette;
+            On.WormGrass.Worm.ApplyPalette += Worm_ApplyPalette;
             On.SeedCob.ApplyPalette += SeedCob_ApplyPalette;
+            On.GreenSparks.GreenSpark.ApplyPalette += GreenSpark_ApplyPalette;
+            // grayscaling applied
+            // the below still need alterations
             On.Lantern.TerrainImpact += Lantern_TerrainImpact;
             On.FlyLure.ApplyPalette += FlyLure_ApplyPalette;
-            On.PoleMimicGraphics.ApplyPalette += PoleMimicGraphics_ApplyPalette;
-            On.FlyGraphics.ApplyPalette += FlyGraphics_ApplyPalette;
             On.Lantern.ApplyPalette += Lantern_ApplyPalette;
             On.Lantern.Update += Lantern_Update;
             On.DangleFruit.ApplyPalette += DangleFruit_ApplyPalette;
@@ -72,9 +77,8 @@ namespace NCRApenpals
             On.PoleMimicGraphics.DrawSprites += PoleMimicGraphics_DrawSprites;
             On.CentipedeGraphics.ApplyPalette += CentipedeGraphics_ApplyPalette;
             On.CentipedeGraphics.ctor += CentipedeGraphics_ctor;
-            On.SpiderGraphics.ApplyPalette += SpiderGraphics_ApplyPalette;
             On.BigSpiderGraphics.ApplyPalette += BigSpiderGraphics_ApplyPalette;
-            // making dream colourful
+            // making dream colourful and real grayscale
             //testing atm if can be simplified -Y
             // it cant :') - A
             Hook fancyoverseers = new Hook(typeof(global::OverseerGraphics).GetProperty("MainColor", BindingFlags.Instance |
@@ -88,9 +92,11 @@ namespace NCRApenpals
             On.OverseerGraphics.ColorOfSegment += OverseerGraphics_ColorOfSegment;
             // random overseers
 
-            
 
 
+            // ----------------------------------- DREAM THINGS ------------------------------------
+            On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
+            // zero-gravity oracle swarmers always
 
             // nightmare-exclusive code below!
 
@@ -114,11 +120,489 @@ namespace NCRApenpals
             On.DaddyCorruption.Update += DaddyCorruption_Update;
             // wall-corruption
 
+            On.RoomCamera.MoveCamera_Room_int += RoomCamera_MoveCamera_Room_int;
+
             //------------------------------------ REAL THINGS ------------------------------------
             // omg so real
 
             On.GlobalRain.DeathRain.NextDeathRainMode += DeathRain_NextDeathRainMode;
-            // rain does not instakill... or well. it SHOULDNT. it still does tho
+            On.GlobalRain.DeathRain.DeathRainUpdate += DeathRain_DeathRainUpdate;
+            // rain does not instakill and instead cycles back around to the precycle.
+
+            //On.RainCycle.ctor += RainCycle_ctor;
+            // every cycle has a precycle
+
+            On.RoomCamera.UpdateDayNightPalette += RoomCamera_UpdateDayNightPalette;
+            On.RoomCamera.Update += RoomCamera_Update;
+            // night cycles
+        }
+
+        private void Worm_ApplyPalette(On.WormGrass.Worm.orig_ApplyPalette orig, WormGrass.Worm self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            if (self.room != null && self != null &&
+                (self.room.game.session.characterStats.name.value == "NCRAdream" || self.room.game.session.characterStats.name.value == "NCRAreal"))
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+
+                Color color = new Color(0f, 0f, 0f, 1f);
+                Color color2 = new Color(0f, 0f, 0f, 1f);
+
+
+                if (self.room.game.session.characterStats.name.value == "NCRAdream")
+                {
+                    color = rCam.PixelColorAtCoordinate(self.belowGroundPos) + new Color(UnityEngine.Random.value,
+                        UnityEngine.Random.value, UnityEngine.Random.value);
+                    color2 = Color.Lerp(palette.texture.GetPixel(self.color, 3), new Color(UnityEngine.Random.value, UnityEngine.Random.value,
+                        UnityEngine.Random.value), self.iFac * 0.5f);
+
+                    sLeaser.sprites[1].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                }
+                if (self.room.game.session.characterStats.name.value == "NCRAreal")
+                {
+                    color.r = 0.299f * rCam.PixelColorAtCoordinate(self.belowGroundPos).r + 0.587f *
+                        rCam.PixelColorAtCoordinate(self.belowGroundPos).g + 0.114f * rCam.PixelColorAtCoordinate(self.belowGroundPos).b;
+                    color.b = color.r;
+                    color.g = color.r;
+
+                    Color grayscale = new Color(0f, 0f, 0f, 1f);
+                    grayscale.r = 0.299f * palette.texture.GetPixel(self.color, 3).r + 0.587f * palette.texture.GetPixel(self.color, 3).g +
+                        palette.texture.GetPixel(self.color, 3).b;
+                    grayscale.g = grayscale.r;
+                    grayscale.b = grayscale.g;
+
+                    color2 = Color.Lerp(grayscale, new Color(0.2f, 0.2f, 0.2f), self.iFac * 0.5f);
+
+
+                    Color grayscale2 = new Color(0f, 0f, 0f, 1f);
+                    grayscale2.r = 0.299f * 0.2f;
+                    grayscale2.g = 0;
+                    grayscale2.b = 0.114f;
+                    sLeaser.sprites[1].color = grayscale2;
+                }
+
+                Room room = self.room;
+                if (((room != null) ? room.world.region : null) != null)
+                {
+                    Room room2 = self.room;
+                    if (((room2 != null) ? room2.world.region.name : null) == "OE")
+                    {
+                        float num = 1000f;
+                        float num2 = (float)self.room.world.rainCycle.dayNightCounter / num;
+
+                        if (self.room.game.session.characterStats.name.value == "NCRAdream")
+                        {
+                            color = Color.Lerp(color, Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value,
+                                UnityEngine.Random.value), color2, 0.5f), num2 * 0.04f);
+                            color2 = Color.Lerp(color2, new Color(UnityEngine.Random.value, UnityEngine.Random.value,
+                                UnityEngine.Random.value), num2 * 0.4f);
+                        }
+                        else
+                        {
+                            Color newcol = new Color(0f, 0f, 0f, 1f);
+                            newcol.r = 0.299f * 0.17f + 0.587f * 0.38f + 0.114f * 0.17f;
+                            newcol.g = 0.299f * 0.17f + 0.587f * 0.38f + 0.114f * 0.17f;
+                            newcol.b = 0.299f * 0.17f + 0.587f * 0.38f + 0.114f * 0.17f;
+
+                            color = Color.Lerp(color, Color.Lerp(newcol, color2, 0.5f), num2 * 0.04f);
+                            color2 = Color.Lerp(color2, newcol, num2 * 0.4f);
+                        }
+                    }
+                }
+                for (int i = 0; i < self.segments.Length; i++)
+                {
+                    (sLeaser.sprites[0] as TriangleMesh).verticeColors[i * 4] = Color.Lerp(color2, color, (float)i /
+                        (float)(self.segments.Length - 1));
+                    (sLeaser.sprites[0] as TriangleMesh).verticeColors[i * 4 + 1] = Color.Lerp(color2, color, (float)i /
+                        (float)(self.segments.Length - 1));
+                    (sLeaser.sprites[0] as TriangleMesh).verticeColors[i * 4 + 2] = Color.Lerp(color2, color, ((float)i + 0.5f) /
+                        (float)(self.segments.Length - 1));
+                    if (i < self.segments.Length - 1)
+                    {
+                        (sLeaser.sprites[0] as TriangleMesh).verticeColors[i * 4 + 3] = Color.Lerp(color2, color, ((float)i + 0.5f) /
+                            (float)(self.segments.Length - 1));
+                    }
+                }
+
+                UnityEngine.Random.state = state;
+            }
+            else
+            {
+                orig(self, sLeaser, rCam, palette);
+            }
+        }
+
+        private void RoomCamera_Update(On.RoomCamera.orig_Update orig, RoomCamera self)
+        {
+            orig(self);
+            if (self.room != null && self != null &&
+                self.room.game.session.characterStats.name.value == "NCRAreal")
+            {
+                if (self.currentPalette.darkness < 0.2f)
+                {
+                    self.currentPalette.darkness = 0.2f;
+                }
+                if (self.effect_dayNight !=  1f)
+                {
+                    self.effect_dayNight = 1f;
+                    self.UpdateDayNightPalette();
+                }
+            }
+        }
+
+        private void DeathRain_DeathRainUpdate(On.GlobalRain.DeathRain.orig_DeathRainUpdate orig, GlobalRain.DeathRain self)
+        {
+            if (self.globalRain.game.session.characterStats.name.value == "NCRAreal" &&
+                self.globalRain.game.FirstAlivePlayer.realizedCreature != null)
+            {
+                self.progression += 1f / self.timeInThisMode * (self.globalRain.game.IsArenaSession ? 3.2f : 1f);
+                bool progressrain = false;
+                if (self.progression > 1f)
+                {
+                    self.progression = 1f;
+                    progressrain = true;
+                }
+
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm)
+                {
+                    self.globalRain.RumbleSound = Mathf.Max(self.globalRain.RumbleSound - 0.025f, 0f);
+                }
+                else
+                {
+                    self.globalRain.RumbleSound = Mathf.Lerp(self.globalRain.RumbleSound, 1f - Mathf.InverseLerp(0f, 0.6f,
+                        self.globalRain.game.world.rainCycle.RainApproaching), 0.2f);
+                }
+
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm)
+                {
+                    self.globalRain.Intensity = Mathf.Pow(Mathf.InverseLerp(0.15f, 0f, self.progression), 1.5f) * 0.24f;
+                    self.globalRain.ShaderLight = -1f + 0.3f * Mathf.Sin(Mathf.InverseLerp(0.03f, 0.8f, self.progression)
+                        * 3.1415927f) * self.calmBeforeStormSunlight;
+                    self.globalRain.bulletRainDensity = Mathf.Pow(Mathf.InverseLerp(0.3f, 1f, self.progression), 8f);
+                }
+                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeABuildUp)
+                {
+                    self.globalRain.Intensity = self.progression * 0.6f;
+                    self.globalRain.MicroScreenShake = self.progression * 1.5f;
+                    self.globalRain.bulletRainDensity = 1f - self.progression;
+                }
+                else if (!(self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeAPlateu))
+                {
+                    if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp)
+                    {
+                        self.globalRain.Intensity = Mathf.Lerp(0.6f, 0.71f, self.progression);
+                        self.globalRain.MicroScreenShake = Mathf.Lerp(1.5f, 2.1f, self.progression);
+                    }
+                    else if (!(self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBPlateu))
+                    {
+                        if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.FinalBuildUp)
+                        {
+                            self.globalRain.Intensity = Mathf.Lerp(0.71f, 1f, self.progression);
+                            self.globalRain.MicroScreenShake = Mathf.Lerp(2.1f, 4f, Mathf.Pow(self.progression, 1.2f));
+                        }
+                        else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.AlternateBuildUp)
+                        {
+                            self.globalRain.Intensity = Mathf.Lerp(0.24f, 0.6f, self.progression);
+                            self.globalRain.MicroScreenShake = 1f + self.progression * 0.5f;
+                        }
+                        else if (self.deathRainMode == MoreSlugcatsEnums.DeathRainMode.Pulses)
+                        {
+                            float num3;
+                            if (self.progression <= 0.9f)
+                            {
+                                float num = (1f - self.progression) * 50f;
+                                float num2 = 0.4f + Mathf.Sin(self.progression / (num / 3f));
+                                num3 = self.progression * self.timeInThisMode / self.timeInThisMode + Mathf.Sin(self.progression *
+                                    self.timeInThisMode / num) / (self.timeInThisMode / (self.progression * self.timeInThisMode));
+                                if (self.progression > 0.6f && Mathf.Abs(num3 - num2) < 0.1f)
+                                {
+                                    num3 *= num2;
+                                }
+                                self.globalRain.bulletRainDensity = Mathf.Lerp(0.1f, 1f, num2 - 0.4f);
+                                num3 = Mathf.Clamp(num3, self.progression * 0.6f, 1f);
+                            }
+                            else
+                            {
+                                self.globalRain.bulletRainDensity = 0f;
+                                num3 = 1f;
+                            }
+                            float t = 0.25f * Mathf.InverseLerp(0f, 0.1f, self.progression);
+                            self.globalRain.Intensity = Mathf.Lerp(self.globalRain.Intensity, Mathf.Lerp(0f, 0.75f, num3), t);
+                            self.globalRain.MicroScreenShake = (1f + self.progression * 0.65f) * (num3 + 0.25f);
+                        }
+                    }
+                }
+
+
+                if (progressrain)
+                {
+                    self.NextDeathRainMode();
+                }
+            }
+            else
+            {
+                orig(self);
+            }
+        }
+
+        private void RainCycle_ctor(On.RainCycle.orig_ctor orig, RainCycle self, World world, float minutes)
+        {
+            orig(self, world, minutes);
+            if (world.game.session is StoryGameSession && world.game.session.characterStats.name.value == "NCRAreal" &&
+                !self.challengeForcedPrecycle)
+            {
+                self.maxPreTimer = (int)UnityEngine.Random.Range(4800f, 12000f);
+                self.preTimer = self.maxPreTimer;
+                self.preCycleRainPulse_WaveA = 0f;
+                self.preCycleRainPulse_WaveB = 0f;
+                self.preCycleRainPulse_WaveC = 1.5707964f;
+                world.game.globalRain.preCycleRainPulse_Scale = 1f;
+                self.challengeForcedPrecycle = true;
+            }
+        }
+
+        private void DeathRain_NextDeathRainMode(On.GlobalRain.DeathRain.orig_NextDeathRainMode orig, GlobalRain.DeathRain self)
+        {
+            if (self.globalRain.game.session.characterStats.name.value == "NCRAreal" && self.globalRain.game.FirstAlivePlayer.realizedCreature != null)
+            {
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.Mayhem)
+                {
+                    return;
+                    // this is the auto-kill rain mode, if i am correct
+                }
+
+
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.None && UnityEngine.Random.value < 0.7f &&
+                    !(self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                {
+                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().InsomniaHalfCycles++;
+                    // adds one to insomniacycles
+
+                    if (UnityEngine.Random.value < 0.7f)
+                    {
+                        self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.AlternateBuildUp;
+                    }
+                    else
+                    {
+                        self.deathRainMode = MoreSlugcatsEnums.DeathRainMode.Pulses;
+                    }
+                }
+                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp &&
+                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                {
+                    self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm;
+                }
+                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeABuildUp &&
+                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                {
+                    self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm;
+                }
+                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.AlternateBuildUp &&
+                    !(self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                {
+                    self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeAPlateu;
+                }
+
+                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeAPlateu &&
+                    !(self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                {
+                    self.deathRainMode = MoreSlugcatsEnums.DeathRainMode.Pulses;
+                }
+                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBPlateu &&
+                    !(self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                {
+                    self.deathRainMode = MoreSlugcatsEnums.DeathRainMode.Pulses;
+                }
+
+
+                else if (self.deathRainMode == MoreSlugcatsEnums.DeathRainMode.Pulses)
+                {
+                    if (UnityEngine.Random.value < 0.5f)
+                    {
+                        self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp;
+                    }
+                    else
+                    {
+                        self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeAPlateu;
+                    }
+
+
+                    UnityEngine.Debug.Log("Insomnia cycle triggered! Swapping rain buildup");
+                    UnityEngine.Debug.Log("Insomnia cycle count:" + (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().InsomniaHalfCycles);
+                    UnityEngine.Debug.Log("Insomnia cycle math:" + ((self.globalRain.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles / 2) % 1));
+                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir = true;
+                }
+
+
+                else
+                {
+                    string entry = ExtEnum<GlobalRain.DeathRain.DeathRainMode>.values.GetEntry(self.deathRainMode.Index);
+                    if ((self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                    {
+                        entry = ExtEnum<GlobalRain.DeathRain.DeathRainMode>.values.GetEntry(self.deathRainMode.Index - 1);
+                        // if the direction of the rain is swapped, then go backwards.
+                    }
+                    else
+                    {
+                        entry = ExtEnum<GlobalRain.DeathRain.DeathRainMode>.values.GetEntry(self.deathRainMode.Index + 1);
+                    }
+
+
+                    if (entry == "None")
+                    {
+                        self.globalRain.ResetRain();
+                    }
+                    else if (entry == null)
+                    {
+                        self.globalRain.ResetRain();
+                    }
+                    else
+                    {
+                        self.deathRainMode = new GlobalRain.DeathRain.DeathRainMode(entry, false);
+                    }
+                }
+
+                self.progression = 0f;
+
+
+
+
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm)
+                {
+                    self.timeInThisMode = Mathf.Lerp(400f, 800f, UnityEngine.Random.value);
+                    self.calmBeforeStormSunlight = ((UnityEngine.Random.value < 0.5f) ? 0f : UnityEngine.Random.value);
+                    return;
+                }
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeABuildUp)
+                {
+                    self.timeInThisMode = 6f;
+                    self.globalRain.ShaderLight = -1f;
+                    return;
+                }
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeAPlateu)
+                {
+                    self.timeInThisMode = Mathf.Lerp(400f, 600f, UnityEngine.Random.value);
+                    return;
+                }
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp)
+                {
+                    self.timeInThisMode = ((UnityEngine.Random.value < 0.5f) ? 100f : Mathf.Lerp(50f, 300f, UnityEngine.Random.value));
+                    return;
+                }
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBPlateu)
+                {
+                    self.timeInThisMode = ((UnityEngine.Random.value < 0.5f) ? 100f : Mathf.Lerp(50f, 300f, UnityEngine.Random.value));
+                    return;
+                }
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.FinalBuildUp)
+                {
+                    self.timeInThisMode = ((UnityEngine.Random.value < 0.5f) ? Mathf.Lerp(300f, 500f, UnityEngine.Random.value) :
+                        Mathf.Lerp(100f, 800f, UnityEngine.Random.value));
+                    return;
+                }
+                if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.AlternateBuildUp)
+                {
+                    self.timeInThisMode = Mathf.Lerp(400f, 1200f, UnityEngine.Random.value);
+                    return;
+                }
+                if (self.deathRainMode == MoreSlugcatsEnums.DeathRainMode.Pulses)
+                {
+                    self.timeInThisMode = Mathf.Lerp(800f, 1200f, UnityEngine.Random.value);
+                    return;
+                }
+            }
+            else
+            {
+                orig(self);
+            }
+        }
+
+
+        private void RoomCamera_UpdateDayNightPalette(On.RoomCamera.orig_UpdateDayNightPalette orig, RoomCamera self)
+        {
+            if (self.room != null && self.game.session.characterStats.name.value == "NCRAreal" && self.game.FirstRealizedPlayer != null &&
+                self.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles != 0 &&
+                (self.room.world.rainCycle.timer >= self.room.world.rainCycle.cycleLength ||
+                (self.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles / 2) % 1 != 0))
+            {
+                // checks to make sure insomniahalfcycles divided by 2 is a whole number
+                // aka: every even cycle is daytime, every uneven cycle is nighttime
+
+                float num = 1320f;
+                float num2 = 1.47f;
+                float num3 = 1.92f;
+                if ((float)self.room.world.rainCycle.dayNightCounter < num)
+                {
+                    if (self.room.roomSettings.GetEffectAmount(RoomSettings.RoomEffect.Type.AboveCloudsView) > 0f &&
+                        self.room.roomSettings.GetEffectAmount(RoomSettings.RoomEffect.Type.SkyAndLightBloom) > 0f)
+                    {
+                        self.room.roomSettings.GetEffect(RoomSettings.RoomEffect.Type.SkyAndLightBloom).amount = 0f;
+                    }
+                    float a = self.paletteBlend;
+                    self.paletteBlend = Mathf.Lerp(a, 1f, (float)self.room.world.rainCycle.dayNightCounter / num);
+                    self.ApplyFade();
+                    self.paletteBlend = a;
+                }
+                else if ((float)self.room.world.rainCycle.dayNightCounter == num)
+                {
+                    self.ChangeBothPalettes(self.paletteB, self.room.world.rainCycle.duskPalette, 0f);
+                }
+                else if ((float)self.room.world.rainCycle.dayNightCounter < num * num2)
+                {
+                    if (self.paletteBlend == 1f || self.paletteB != self.room.world.rainCycle.duskPalette || self.dayNightNeedsRefresh)
+                    {
+                        self.ChangeBothPalettes(self.paletteB, self.room.world.rainCycle.duskPalette, 0f);
+                    }
+                    self.paletteBlend = Mathf.InverseLerp(num, num * num2, (float)self.room.world.rainCycle.dayNightCounter);
+                    self.ApplyFade();
+                }
+                else if ((float)self.room.world.rainCycle.dayNightCounter == num * num2)
+                {
+                    self.ChangeBothPalettes(self.room.world.rainCycle.duskPalette, self.room.world.rainCycle.nightPalette, 0f);
+                }
+                else if ((float)self.room.world.rainCycle.dayNightCounter < num * num3)
+                {
+                    if (self.paletteBlend == 1f || self.paletteB != self.room.world.rainCycle.nightPalette ||
+                        self.paletteA != self.room.world.rainCycle.duskPalette || self.dayNightNeedsRefresh)
+                    {
+                        self.ChangeBothPalettes(self.room.world.rainCycle.duskPalette, self.room.world.rainCycle.nightPalette, 0f);
+                    }
+                    self.paletteBlend = Mathf.InverseLerp(num * num2, num * num3, (float)self.room.world.rainCycle.dayNightCounter) * 0.99f;
+                    self.ApplyFade();
+                }
+                else if ((float)self.room.world.rainCycle.dayNightCounter == num * num3)
+                {
+                    self.ChangeBothPalettes(self.room.world.rainCycle.duskPalette, self.room.world.rainCycle.nightPalette,
+                        self.effect_dayNight * 0.99f);
+                }
+                else if ((float)self.room.world.rainCycle.dayNightCounter > num * num3)
+                {
+                    if (self.paletteBlend == 1f || self.paletteB != self.room.world.rainCycle.nightPalette ||
+                        self.paletteA != self.room.world.rainCycle.duskPalette || self.dayNightNeedsRefresh)
+                    {
+                        self.ChangeBothPalettes(self.room.world.rainCycle.duskPalette, self.room.world.rainCycle.nightPalette,
+                            self.effect_dayNight);
+                    }
+                    self.paletteBlend = self.effect_dayNight * 0.99f;
+                    self.ApplyFade();
+                }
+                self.dayNightNeedsRefresh = false;
+            }
+            else
+            {
+                orig(self);
+            }
+        }
+
+        private void RoomCamera_MoveCamera_Room_int(On.RoomCamera.orig_MoveCamera_Room_int orig, RoomCamera self, Room newRoom, int camPos)
+        {
+            orig(self, newRoom, camPos);
+            if (newRoom.roomSettings.GetEffectAmount(RoomSettings.RoomEffect.Type.HeatWave) == 0f && newRoom != null &&
+                self.game.session.characterStats.name.value == "NCRAdream")
+            {
+                self.levelGraphic.shader = self.game.rainWorld.Shaders["LevelHeat"];
+                self.levelGraphic.alpha = 0.5f;
+                // adds heatwave effect to every room that does not naturally have a heat wave
+            }
         }
 
         private void SSOracleMeetWhite_Update(On.SSOracleBehavior.SSOracleMeetWhite.orig_Update orig, SSOracleBehavior.SSOracleMeetWhite self)
@@ -1077,21 +1561,6 @@ namespace NCRApenpals
             }
         }
 
-        private void DeathRain_NextDeathRainMode(On.GlobalRain.DeathRain.orig_NextDeathRainMode orig, GlobalRain.DeathRain self)
-        {
-            if (self.globalRain.game.session.characterStats.name.value == "NCRAreal"
-                && (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.AlternateBuildUp ||
-                self.deathRainMode == MoreSlugcatsEnums.DeathRainMode.Pulses))
-            {
-                self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeABuildUp;
-                // if the game is a NCRAreal game, the rain never actually kills. instead, it loops back to the beginning
-            }
-            else
-            {
-                orig(self);
-            }
-        }
-
         private float Player_DeathByBiteMultiplier(On.Player.orig_DeathByBiteMultiplier orig, Player self)
         {
             if (self.room != null && self != null &&
@@ -1273,7 +1742,6 @@ namespace NCRApenpals
                 self.owner.room.game.session.characterStats.name.value == "NCRAdream")
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
-                UnityEngine.Random.InitState(self.fly.abstractCreature.ID.RandomSeed);
                 for (int i = 0; i < 3; i++)
                 {
                     sLeaser.sprites[i].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
@@ -1301,7 +1769,7 @@ namespace NCRApenpals
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.pole.abstractCreature.ID.RandomSeed);
                 self.blackColor = new Color(0.01f, 0.01f, 0.01f);
-                self.mimicColor = palette.blackColor;
+                self.mimicColor = new Color(0f, 0f, 0f);
                 UnityEngine.Random.state = state;
             }
             else
@@ -1323,6 +1791,17 @@ namespace NCRApenpals
                 self.UpdateColor(sLeaser, false);
 
                 UnityEngine.Random.state = state;
+            }
+            else if (self != null && self.room != null && !self.slatedForDeletetion &&
+                self.room.game.session.characterStats.name.value == "NCRAreal")
+            {
+                Color grayscale = new Color();
+                grayscale.r = 0.299f * self.color.r;
+                grayscale.g = 0.587f * self.color.g;
+                grayscale.b = 0.114f * self.color.b;
+
+                self.color = Color.Lerp(grayscale, palette.fogColor, UnityEngine.Random.value);
+                self.UpdateColor(sLeaser, false);
             }
             else
             {
@@ -1358,57 +1837,120 @@ namespace NCRApenpals
         private void SeedCob_ApplyPalette(On.SeedCob.orig_ApplyPalette orig, SeedCob self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
             if (self != null && self.room != null && !self.slatedForDeletetion &&
-                self.room.game.session.characterStats.name.value == "NCRAdream")
+                self.room.game.session.characterStats.name.value == "NCRAdream" || self.room.game.session.characterStats.name.value == "NCRAreal")
             {
-                UnityEngine.Random.State state = UnityEngine.Random.state;
-                UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
-
-                sLeaser.sprites[self.StalkSprite(0)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                self.StoredBlackColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                self.StoredPlantColor = palette.texture.GetPixel(0, 5);
-
-                for (int i = 0; i < (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length; i++)
+                if (self.room.game.session.characterStats.name.value == "NCRAdream")
                 {
-                    float num = (float)i / (float)((sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length - 1);
-                    (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors[i] = Color.Lerp(palette.blackColor,
-                        new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), 0.4f +
-                        Mathf.Pow(1f - num, 0.5f) * 0.4f);
-                }
+                    UnityEngine.Random.State state = UnityEngine.Random.state;
+                    UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
 
-                self.yellowColor = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
-                    palette.blackColor, self.AbstractCob.dead ? (0.95f + 0.5f * rCam.PaletteDarkness()) :
-                    (0.18f + 0.7f * rCam.PaletteDarkness()));
+                    sLeaser.sprites[self.StalkSprite(0)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    self.StoredBlackColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    self.StoredPlantColor = palette.texture.GetPixel(0, 5);
 
-                for (int j = 0; j < 2; j++)
-                {
-                    for (int k = 0; k < (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length; k++)
+                    for (int i = 0; i < (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length; i++)
                     {
-                        float num2 = 1f - (float)k / (float)((sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length - 1);
-                        (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors[k] = Color.Lerp(palette.blackColor,
-                            new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
-                            Mathf.Pow(num2, 2.5f) * 0.4f);
+                        float num = (float)i / (float)((sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length - 1);
+                        (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors[i] = Color.Lerp(palette.blackColor,
+                            new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), 0.4f +
+                            Mathf.Pow(1f - num, 0.5f) * 0.4f);
+                    }
+
+                    self.yellowColor = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
+                        palette.blackColor, self.AbstractCob.dead ? (0.95f + 0.5f * rCam.PaletteDarkness()) :
+                        (0.18f + 0.7f * rCam.PaletteDarkness()));
+
+                    for (int j = 0; j < 2; j++)
+                    {
+                        for (int k = 0; k < (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length; k++)
+                        {
+                            float num2 = 1f - (float)k / (float)((sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length - 1);
+                            (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors[k] = Color.Lerp(palette.blackColor,
+                                new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
+                                Mathf.Pow(num2, 2.5f) * 0.4f);
+                        }
+                    }
+
+                    sLeaser.sprites[self.CobSprite].color = self.yellowColor;
+
+                    for (int l = 0; l < self.seedPositions.Length; l++)
+                    {
+                        sLeaser.sprites[self.SeedSprite(l, 0)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                        sLeaser.sprites[self.SeedSprite(l, 1)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                        sLeaser.sprites[self.SeedSprite(l, 2)].color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value,
+                            UnityEngine.Random.value), palette.blackColor, self.AbstractCob.dead ? 0.3f : 0.2f);
+                    }
+                    for (int m = 0; m < self.leaves.GetLength(0); m++)
+                    {
+                        sLeaser.sprites[self.LeafSprite(m)].color = palette.blackColor;
+                    }
+
+                    UnityEngine.Random.state = state;
+                }
+                else
+                {
+                    Color blackcol = new Color(0f, 0f, 0f, 1f);
+                    blackcol.g = 0.299f * palette.blackColor.r + 0.587f * palette.blackColor.g + 0.114f * palette.blackColor.b;
+                    blackcol.r = blackcol.g;
+                    blackcol.b = blackcol.r;
+
+                    sLeaser.sprites[self.StalkSprite(0)].color = blackcol;
+                    self.StoredBlackColor = blackcol;
+
+
+                    Color pixel = new Color(0f, 0f, 0f, 1f);
+                    pixel.r = 0.299f * palette.texture.GetPixel(0, 5).r + 0.587f * palette.texture.GetPixel(0, 5).g + 0.114f *
+                        palette.texture.GetPixel(0, 5).b;
+                    pixel.g = pixel.r;
+                    pixel.b = pixel.g;
+
+
+                    self.StoredPlantColor = pixel;
+                    for (int i = 0; i < (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length; i++)
+                    {
+                        float num = (float)i / (float)((sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors.Length - 1);
+                        (sLeaser.sprites[self.StalkSprite(1)] as TriangleMesh).verticeColors[i] = Color.Lerp(blackcol, pixel,
+                            0.4f + Mathf.Pow(1f - num, 0.5f) * 0.4f);
+                    }
+
+                    Color yel = new Color(0f, 0f, 0f, 1f);
+                    yel.r = 0.299f * 0.9f + 0.587f * 0.83f + 0.114f * 0.5f;
+                    yel.g = yel.r;
+                    yel.b = yel.r;
+
+                    self.yellowColor = Color.Lerp(yel, blackcol, self.AbstractCob.dead ? (0.95f + 0.5f * rCam.PaletteDarkness()) :
+                        (0.18f + 0.7f * rCam.PaletteDarkness()));
+                    for (int j = 0; j < 2; j++)
+                    {
+                        for (int k = 0; k < (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length; k++)
+                        {
+                            float f = 1f - (float)k / (float)((sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors.Length - 1);
+                            (sLeaser.sprites[self.ShellSprite(j)] as TriangleMesh).verticeColors[k] =
+                                Color.Lerp(blackcol, new Color(0.299f, 0.299f, 0.299f), Mathf.Pow(f, 2.5f) * 0.4f);
+                        }
+                    }
+                    sLeaser.sprites[self.CobSprite].color = self.yellowColor;
+                    Color color = self.yellowColor + new Color(0.3f, 0.3f, 0.3f) * Mathf.Lerp(1f, 0.15f, rCam.PaletteDarkness());
+                    if (self.AbstractCob.dead)
+                    {
+                        color = Color.Lerp(self.yellowColor, pixel, 0.75f);
+                    }
+                    for (int l = 0; l < self.seedPositions.Length; l++)
+                    {
+                        sLeaser.sprites[self.SeedSprite(l, 0)].color = self.yellowColor;
+                        sLeaser.sprites[self.SeedSprite(l, 1)].color = color;
+                        sLeaser.sprites[self.SeedSprite(l, 2)].color = Color.Lerp(new Color(0.299f, 0.299f, 0.299f), blackcol,
+                            self.AbstractCob.dead ? 0.6f : 0.3f);
+                    }
+                    for (int m = 0; m < self.leaves.GetLength(0); m++)
+                    {
+                        sLeaser.sprites[self.LeafSprite(m)].color = blackcol;
                     }
                 }
-
-                sLeaser.sprites[self.CobSprite].color = self.yellowColor;
-
-                for (int l = 0; l < self.seedPositions.Length; l++)
-                {
-                    sLeaser.sprites[self.SeedSprite(l, 0)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                    sLeaser.sprites[self.SeedSprite(l, 1)].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                    sLeaser.sprites[self.SeedSprite(l, 2)].color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value,
-                        UnityEngine.Random.value), palette.blackColor, self.AbstractCob.dead ? 0.3f : 0.2f);
-                }
-                for (int m = 0; m < self.leaves.GetLength(0); m++)
-                {
-                    sLeaser.sprites[self.LeafSprite(m)].color = palette.blackColor;
-                }
-                
-                UnityEngine.Random.state = state;
             }
             else
             {
-                orig.Invoke(self, sLeaser, rCam, palette);
+                orig(self, sLeaser, rCam, palette);
             }
         }
 
@@ -1422,10 +1964,10 @@ namespace NCRApenpals
                 self.buoyancy = 0.96f;
                 self.customPlayerGravity = 0.35f;
             }
-            else if ((self.GetDreamCat().IsDream || self.GetDreamCat().DreamActive) && self.GetDreamCat().InTheNightmare &&
+            else if ((self.GetDreamCat().IsDream || self.GetDreamCat().DreamActive) &&
                 self.room.gravity == 0f && !self.submerged)
             {
-                self.customPlayerGravity = 1.2f;
+                self.customPlayerGravity = 1f;
             }
             else if (self.GetRealCat().IsReal)
             {
@@ -1455,60 +1997,58 @@ namespace NCRApenpals
             if (self.slugcatStats.name.value == "NCRAreal")
             {
                 self.GetRealCat().IsReal = true;
+
+                if (self.glowing)
+                {
+                    self.glowing = false;
+                    // never has the glow
+                }
             }
             // ---------------------------------------------------- REAL STORY ----------------------------------------------------
             if (self.room.game.session.characterStats.name.value == "NCRreal")
             {
+                LoadShaders(self.room.game.rainWorld);
                 self.GetRealCat().RealActive = true;
             }
-        }
-
-        private void GreenSpark_Update(On.GreenSparks.GreenSpark.orig_Update orig, GreenSparks.GreenSpark self, bool eu)
-        {
-            if (self != null && self.room != null && !self.slatedForDeletetion &&
-                // makes sure base values arent null. this effect especially needs it.
-                self.room.game.session.characterStats.name.value == "NCRAdream")
-            {
-                UnityEngine.Random.State state = UnityEngine.Random.state;
-                self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                orig(self, eu);
-                UnityEngine.Random.state = state;
-                // this should make it so the effect DOES NOT change upon changing screens. hopefully.
-                // otherwise, SBCameraScroll will have an issue where it swaps rapidly between random values,
-                // causing flashes...
-            }
-            else orig(self, eu);
         }
 
         private void GreenSpark_ApplyPalette(On.GreenSparks.GreenSpark.orig_ApplyPalette orig, GreenSparks.GreenSpark self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
             if (self != null && self.room != null && !self.slatedForDeletetion &&
-                self.room.game.session.characterStats.name.value == "NCRAdream")
+                self.room.game.session.characterStats.name.value == "NCRAdream" || self.room.game.session.characterStats.name.value == "NCRAreal")
             {
-                UnityEngine.Random.State state = UnityEngine.Random.state;
-
-                if (self.depth <= 0f)
+                if (self.room.game.session.characterStats.name.value == "NCRAdream")
                 {
-                    sLeaser.sprites[0].color = self.col;
-                    return;
-                }
-                sLeaser.sprites[0].color = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    UnityEngine.Random.State state = UnityEngine.Random.state;
 
-                UnityEngine.Random.state = state;
+                    self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    if (self.depth <= 0f)
+                    {
+                        sLeaser.sprites[0].color = self.col;
+                        return;
+                    }
+                    sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, new Color(UnityEngine.Random.value,
+                        UnityEngine.Random.value, UnityEngine.Random.value), Mathf.InverseLerp(0f, 5f, self.depth));
+
+                    UnityEngine.Random.state = state;
+                }
+                else
+                {
+                    Color grayscale = new Color(0f, 0f, 0f, 1f);
+                    grayscale.r = 0.299f * self.col.r + 0.587f * self.col.g + 0.114f * self.col.b;
+                    grayscale.b = grayscale.r;
+                    grayscale.g = grayscale.r;
+
+                    self.col = grayscale;
+                    if (self.depth <= 0f)
+                    {
+                        sLeaser.sprites[0].color = self.col;
+                        return;
+                    }
+                    sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, self.col, Mathf.InverseLerp(0f, 5f, self.depth));
+                }
             }
             else orig(self, sLeaser, rCam, palette);
-        }
-
-        private void FireFly_ctor(On.FireFly.orig_ctor orig, FireFly self, Room room, Vector2 pos)
-        {
-            orig(self, room, pos);
-            if (self != null && self.room != null && !self.slatedForDeletetion &&
-                room.game.session.characterStats.name.value == "NCRAdream")
-            {
-                UnityEngine.Random.State state = UnityEngine.Random.state;
-                self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                UnityEngine.Random.state = state;
-            }
         }
 
         private void SSOracleSwarmer_Update(On.SSOracleSwarmer.orig_Update orig, SSOracleSwarmer self, bool eu)
@@ -1534,7 +2074,7 @@ namespace NCRApenpals
 
         private void LoadResources(RainWorld rainWorld)
         {
-
+            
         }
     }
 }

@@ -7,3 +7,5 @@ C:\Users\tongu\3D Objects\ThePenpals\src\obj\Debug\net48\NCRApenpals.AssemblyInf
 C:\Users\tongu\3D Objects\ThePenpals\src\obj\Debug\net48\NCRApenpals.csproj.CoreCompileInputs.cache
 C:\Users\tongu\3D Objects\ThePenpals\src\obj\Debug\net48\NCRApenpals.dll
 C:\Users\tongu\3D Objects\ThePenpals\src\obj\Debug\net48\NCRApenpals.pdb
+C:\Users\tongu\3D Objects\ThePenpals\src\bin\Debug\net48\Rewired_Core.dll
+C:\Users\tongu\3D Objects\ThePenpals\src\obj\Debug\net48\NCRApenpals.csproj.CopyComplete

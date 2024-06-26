@@ -36,12 +36,17 @@ namespace NCRApenpals
             public bool IsReal;
             public bool RealActive;
             public float Sanity;
+            public int InsomniaHalfCycles;
+            public bool swapRainDir;
 
             public NCRAreal()
             {
                 this.IsReal = false;
                 this.RealActive = false;
                 this.Sanity = 1f;
+                this.InsomniaHalfCycles = 0;
+                // every TWO insomniahalfcycles is equal to one full cycle.
+                this.swapRainDir = false;
             }
         }
 
