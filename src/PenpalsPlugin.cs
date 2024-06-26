@@ -22,11 +22,40 @@ namespace NCRApenpals
 
         public static void LoadShaders(RainWorld rainWorld)
         {
-            string path = AssetManager.ResolveFilePath("GrayscaleGrab");
+            UnityEngine.Debug.Log("Loading Insomniac Shader...");
+
+            string path = AssetManager.ResolveFilePath("shaders/GrayscaleGrab");
+            if (!File.Exists(path))
+            {
+                UnityEngine.Debug.Log("Can't find shader path: " + path);
+            }
+
             AssetBundle bundle = AssetBundle.LoadFromFile(path);
-            Shader shader = bundle.LoadAsset<Shader>("Vigaro/GrayscaleGrab");
-            rainWorld.Shaders["VigaroGrayscaleGrab"] = FShader.CreateShader("VigaroGrayscaleGrab", shader);
-            // this is called via self.game.rainWorld.Shaders["Vigaro/GrayscaleGrab"]
+            if (bundle == null)
+            {
+                UnityEngine.Debug.Log("File is not found in path: " + path);
+            }
+
+            Shader shader = bundle.LoadAsset<Shader>("GrayscaleGrab");
+            if (shader == null)
+            {
+                UnityEngine.Debug.Log("Shader not found in path: " + path + ". Cancelling.");
+            }
+            else
+            {
+                rainWorld.Shaders["ncrgray"] = FShader.CreateShader("GrayscaleGrab", shader);
+                // this is called via rainWorld.Shaders["ncrgray"]
+
+                if (rainWorld.Shaders["ncrgray"] == null)
+                {
+                    UnityEngine.Debug.Log("Createshader failed. Dying");
+                }
+                else
+                {
+
+                    UnityEngine.Debug.Log("Insomniac Shader loaded properly for once!");
+                }
+            }
         }
 
         public void OnEnable()
@@ -58,6 +87,7 @@ namespace NCRApenpals
             On.SSOracleBehavior.SSOracleMeetWhite.Update += SSOracleMeetWhite_Update;
             // fixing oracle issues
 
+            On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             
 
             On.FlyGraphics.ApplyPalette += FlyGraphics_ApplyPalette;
@@ -135,6 +165,33 @@ namespace NCRApenpals
             On.RoomCamera.UpdateDayNightPalette += RoomCamera_UpdateDayNightPalette;
             On.RoomCamera.Update += RoomCamera_Update;
             // night cycles
+
+            On.RoomCamera.ApplyPalette += RoomCamera_ApplyPalette;
+        }
+
+        private void RoomCamera_ApplyPalette(On.RoomCamera.orig_ApplyPalette orig, RoomCamera self)
+        {
+            if (self.room != null &&
+                self.room.game.session.characterStats.name.value == "NCRAreal")
+            {
+                FSprite grayshader = new FSprite("Futile_White", true);
+
+                grayshader.shader = self.game.rainWorld.Shaders["ncrgray"];
+                grayshader.scaleX = self.game.rainWorld.options.ScreenSize.x + 5f;
+                grayshader.scaleY = self.game.rainWorld.options.ScreenSize.y + 5f;
+                grayshader.anchorX = 0f;
+                grayshader.anchorY = 0f;
+                grayshader.alpha = 1f;
+
+                self.ReturnFContainer("GrabShaders").AddChild(grayshader);
+            }
+            orig(self);
+        }
+
+        private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
+        {
+            orig(self);
+            LoadShaders(self);
         }
 
         private void Worm_ApplyPalette(On.WormGrass.Worm.orig_ApplyPalette orig, WormGrass.Worm self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -1982,8 +2039,6 @@ namespace NCRApenpals
             if (self.slugcatStats.name.value == "NCRAdream")
             {
                 self.GetDreamCat().IsDream = true;
-
-                
             }
             // ---------------------------------------------------- DREAM STORY ----------------------------------------------------
             if (self.room.game.session.characterStats.name.value == "NCRAdream")
@@ -1997,17 +2052,10 @@ namespace NCRApenpals
             if (self.slugcatStats.name.value == "NCRAreal")
             {
                 self.GetRealCat().IsReal = true;
-
-                if (self.glowing)
-                {
-                    self.glowing = false;
-                    // never has the glow
-                }
             }
             // ---------------------------------------------------- REAL STORY ----------------------------------------------------
             if (self.room.game.session.characterStats.name.value == "NCRreal")
             {
-                LoadShaders(self.room.game.rainWorld);
                 self.GetRealCat().RealActive = true;
             }
         }
