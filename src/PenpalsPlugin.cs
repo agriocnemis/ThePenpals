@@ -2,12 +2,10 @@
 using UnityEngine;
 using MoreSlugcats;
 using RWCustom;
-using HUD;
 using MonoMod.RuntimeDetour;
 using System.Reflection;
 using System;
 using CoralBrain;
-using System.Collections.Generic;
 using System.IO;
 
 
