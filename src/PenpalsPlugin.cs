@@ -50,7 +50,6 @@ namespace NCRApenpals
             On.SSOracleBehavior.SSOracleMeetWhite.Update += SSOracleMeetWhite_Update;
             // fixing oracle issues
 
-            On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             
 
             
@@ -130,6 +129,14 @@ namespace NCRApenpals
             // night cycles
 
             On.RoomCamera.ApplyPalette += RoomCamera_ApplyPalette;
+            On.RainWorld.PostModsInit += RainWorld_PostModsInit;
+            // constant grayscale shaders
+        }
+
+        private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
+        {
+            orig(self);
+            LoadShaders(self);
         }
 
         public static void LoadShaders(RainWorld rainWorld)
@@ -192,12 +199,6 @@ namespace NCRApenpals
                 // attached to the "Bloom" layer. this means it will be overtop of most effects, including shortcuts and water
             }
             orig(self);
-        }
-
-        private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
-        {
-            orig(self);
-            LoadShaders(self);
         }
 
         private void Worm_ApplyPalette(On.WormGrass.Worm.orig_ApplyPalette orig, WormGrass.Worm self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -1794,7 +1795,7 @@ namespace NCRApenpals
             else if (self != null && self.owner != null && !self.owner.slatedForDeletetion &&
                 self.owner.room.game.session.characterStats.name.value == "NCRAreal")
             {
-                self.blackColor = new Color(0.01f, 0.01f, 0.01f);
+                self.blackColor = palette.blackColor;
                 // the colour used when annoyed
                 self.mimicColor = Color.Lerp(new Color(0f, 0f, 0f), palette.blackColor, palette.fogAmount * 0.13333334f);
                 // the colour used when hiding
