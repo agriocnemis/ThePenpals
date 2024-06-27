@@ -1747,10 +1747,11 @@ namespace NCRApenpals
                 self.color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), palette.blackColor, self.darkness);
                 UnityEngine.Random.state = state;
             }
-            else if (self.room.game.FirstRealizedPlayer != null && !self.slatedForDeletetion && self != null && self.room != null &&
-                self.room.game.FirstRealizedPlayer.slugcatStats.name.value == "NCRAdream")
+            else if (!self.slatedForDeletetion && self != null && self.room != null &&
+                self.room.game.session.characterStats.name.value == "NCRAdream")
             {
                 // if the first realized player is NCRAdream
+                // not currently operational
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
 

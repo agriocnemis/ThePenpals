@@ -57,21 +57,5 @@ namespace NCRApenpals
 
         private static readonly ConditionalWeakTable<Player, NCRAreal> CWTR = new();
         public static NCRAreal GetRealCat(this Player player) => CWTR.GetValue(player, _ => new());
-
-        public class MenuSceneID
-        {
-            public static void RegisterValues()
-            {
-                PenpalScenes.DreamMenuStart = new MenuScene.SceneID("DreamMenuStart", true);
-            }
-
-            public static void UnregisterValues()
-            {
-                if (PenpalScenes.DreamMenuStart != null)
-                {
-                    PenpalScenes.DreamMenuStart.Unregister();
-                }
-            }
-        }
     }
 }
