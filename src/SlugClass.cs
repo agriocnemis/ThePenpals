@@ -5,6 +5,7 @@ using BepInEx;
 using UnityEngine;
 using NCRApenpals;
 using On;
+using Menu;
 
 namespace NCRApenpals
 {
@@ -18,7 +19,9 @@ namespace NCRApenpals
             public bool InTheNightmare;
             public float Sanity;
 
-            public NCRAdream(){
+
+            public NCRAdream()
+            {
                 this.IsDream = false;
                 this.DreamActive = false;
                 this.InTheNightmare = false;
@@ -39,6 +42,7 @@ namespace NCRApenpals
             public int InsomniaHalfCycles;
             public bool swapRainDir;
 
+
             public NCRAreal()
             {
                 this.IsReal = false;
@@ -48,9 +52,26 @@ namespace NCRApenpals
                 // every TWO insomniahalfcycles is equal to one full cycle.
                 this.swapRainDir = false;
             }
+
         }
 
         private static readonly ConditionalWeakTable<Player, NCRAreal> CWTR = new();
         public static NCRAreal GetRealCat(this Player player) => CWTR.GetValue(player, _ => new());
+
+        public class MenuSceneID
+        {
+            public static void RegisterValues()
+            {
+                PenpalScenes.DreamMenuStart = new MenuScene.SceneID("DreamMenuStart", true);
+            }
+
+            public static void UnregisterValues()
+            {
+                if (PenpalScenes.DreamMenuStart != null)
+                {
+                    PenpalScenes.DreamMenuStart.Unregister();
+                }
+            }
+        }
     }
 }

@@ -7,17 +7,19 @@ using System.Reflection;
 using System;
 using CoralBrain;
 using System.IO;
+using Menu;
 
 
 namespace NCRApenpals
 {
     [BepInPlugin(MOD_ID, "NCRApenpals", "0.0.0")]
-    class Plugin : BaseUnityPlugin
+    class NCRAPenPlugin : BaseUnityPlugin
     {
         private const string MOD_ID = "neoncityrain-agriocnemis.penpals";
         public delegate Color orig_OverseerMainColor(global::OverseerGraphics self);
+        public static SlugcatStats.Name NCRAdream;
+        public static SlugcatStats.Name NCRAreal;
 
-        
 
         public void OnEnable()
         {
@@ -47,6 +49,9 @@ namespace NCRApenpals
 
             On.SSOracleBehavior.SSOracleMeetWhite.Update += moonstopcrashingthegamechallenge;
             // fixing oracle issues
+
+
+            // building sleepscreen
 
             // ----------------------------------- DREAM THINGS ------------------------------------
             On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
@@ -136,43 +141,55 @@ namespace NCRApenpals
         {
             UnityEngine.Debug.Log("Loading Insomniac Shader...");
 
+
             string path = AssetManager.ResolveFilePath("shaders/GrayscaleGrab");
             if (!File.Exists(path))
             {
-                UnityEngine.Debug.Log("Can't find shader path: " + path);
-            }
-
-            AssetBundle bundle = AssetBundle.LoadFromFile(path);
-            if (bundle == null)
-            {
-                UnityEngine.Debug.Log("File is not found in path: " + path);
-            }
-
-            Shader shader = bundle.LoadAsset<Shader>("GrayscaleGrab");
-            if (shader == null)
-            {
-                UnityEngine.Debug.Log("Shader not found in path: " + path + ". Cancelling.");
+                UnityEngine.Debug.Log("Can't find shader path: " + path + ". Cancelling.");
             }
             else
             {
-                rainWorld.Shaders["ncrgray"] = FShader.CreateShader("GrayscaleGrab", shader);
-                // this is called via rainWorld.Shaders["ncrgray"]
 
-                if (rainWorld.Shaders["ncrgray"] == null)
+                AssetBundle bundle = AssetBundle.LoadFromFile(path);
+                if (bundle == null)
                 {
-                    UnityEngine.Debug.Log("Createshader failed. Dying");
+                    UnityEngine.Debug.Log("File is not found in path: " + path + ". Cancelling.");
                 }
                 else
                 {
 
-                    UnityEngine.Debug.Log("Insomniac Shader loaded properly for once!");
+                    Shader shader = bundle.LoadAsset<Shader>("GrayscaleGrab");
+                    if (shader == null)
+                    {
+                        UnityEngine.Debug.Log("Shader not found in path: " + path + ". Cancelling.");
+                    }
+                    else
+                    {
+
+                        rainWorld.Shaders["ncrgray"] = FShader.CreateShader("GrayscaleGrab", shader);
+                        // this is called via rainWorld.Shaders["ncrgray"]
+
+                        if (rainWorld.Shaders["ncrgray"] == null)
+                        {
+                            UnityEngine.Debug.Log("Createshader failed. Dying");
+                        }
+                        else
+                        {
+
+                            UnityEngine.Debug.Log("Insomniac Shader loaded properly for once!");
+                        }
+                    }
                 }
+
+                
             }
+
+            
         }
 
         private void ApplyGrayscaleGrab(On.RoomCamera.orig_ApplyPalette orig, RoomCamera self)
         {
-            if (self.room != null &&
+            if (self.room != null && self.room.game.rainWorld.Shaders["ncrgray"] != null &&
                 self.room.game.session.characterStats.name.value == "NCRAreal")
             {
                 FSprite grayshader = new FSprite("Futile_White", true);
@@ -1555,7 +1572,7 @@ namespace NCRApenpals
             }
         }
 
-        public Color OverseerGraphics_MainColor_get(Plugin.orig_OverseerMainColor orig, global::OverseerGraphics self)
+        public Color OverseerGraphics_MainColor_get(NCRAPenPlugin.orig_OverseerMainColor orig, global::OverseerGraphics self)
         {
             if (self.owner != null && self.owner.room != null &&
                 self.overseer.room.world.game.session.characterStats.name.value == "NCRAdream")
@@ -2005,6 +2022,10 @@ namespace NCRApenpals
                 {
                     self.GetRealCat().IsReal = true;
                     UnityEngine.Debug.Log("Realcat selected. Enabled IsReal");
+                    if (self.slugcatStats.name == NCRAreal)
+                    {
+                        UnityEngine.Debug.Log("NCRAReal name correct!");
+                    }
                 }
             }
             // ---------------------------------------------------- REAL STORY ----------------------------------------------------
@@ -2015,6 +2036,11 @@ namespace NCRApenpals
                     self.GetRealCat().RealActive = true;
                     UnityEngine.Debug.Log("Realcat campaign selected. Enabled RealActive");
                 }
+
+                if (self.room.game.rainWorld.Shaders["ncrgray"] == null)
+                {
+                    LoadShaders(self.room.game.rainWorld);
+                }
             }
         }
 
@@ -2023,19 +2049,18 @@ namespace NCRApenpals
             if (self != null && self.room != null && !self.slatedForDeletetion &&
                 self.room.game.session.characterStats.name.value == "NCRAdream")
             {
-                
-                    UnityEngine.Random.State state = UnityEngine.Random.state;
-
-                    self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-                    if (self.depth <= 0f)
-                    {
-                        sLeaser.sprites[0].color = self.col;
-                        return;
-                    }
-                    sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, new Color(UnityEngine.Random.value,
-                        UnityEngine.Random.value, UnityEngine.Random.value), Mathf.InverseLerp(0f, 5f, self.depth));
-
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                self.col = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                if (self.depth <= 0f)
+                {
+                    sLeaser.sprites[0].color = self.col;
                     UnityEngine.Random.state = state;
+                    return;
+                }
+                sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, new Color(UnityEngine.Random.value,
+                    UnityEngine.Random.value, UnityEngine.Random.value), Mathf.InverseLerp(0f, 5f, self.depth));
+
+                UnityEngine.Random.state = state;
                 
             }
             else orig(self, sLeaser, rCam, palette);
