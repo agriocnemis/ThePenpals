@@ -13,12 +13,13 @@
 				"story": "F5D4C2"
 			}
 		],
-		"world_state": [ "NCRAreal", "Spear" ],
+		"world_state": [ "NCRAreal", "Spear", "Red" ],
+		"start_room": [ "VS_S08" ],
 		"auto_grab_batflies": false,
 		
 		"weight": 1.1,
 		"walk_speed": 1.1,
-		"throw_skill": 1,
+		"throw_skill": [1, 2],
 		"lung_capacity": [1.2, 1.5],
 		"loudness": 1.1,
 		"cycle_length_max": 6.5,
@@ -26,8 +27,16 @@
 		"karma": 0,
 		"karma_cap": 0,
 		
-		"start_room": "VS_S08",
-		
+		"alignments": {
+			"Lizards": {
+				"like": 0.1,
+				"strength": 0.2
+			},
+			"Scavengers": {
+				"like": -0.1,
+				"strength": 0.2
+			}
+		},
 		
 		"select_menu_scene": "NCRAreal-select",
 		"select_menu_scene_ascended": "NCRAreal-end",

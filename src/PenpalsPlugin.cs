@@ -41,20 +41,14 @@ namespace NCRApenpals
             On.MoreSlugcats.StowawayBugState.AwakeThisCycle += StowAwake;
             // forcing stowaway states
 
-            On.PlayerGraphics.ctor += PlayerGraphics_ctor;
+            On.PlayerGraphics.ctor += fonkytailtime;
             // graphics editing
 
-            On.RegionGate.customKarmaGateRequirements += RegionGate_customKarmaGateRequirements;
+            On.RegionGate.customKarmaGateRequirements += mycitynow;
             // can change any gate requirement we want
 
-            On.SSOracleBehavior.SSOracleMeetWhite.Update += SSOracleMeetWhite_Update;
+            On.SSOracleBehavior.SSOracleMeetWhite.Update += moonstopcrashingthegamechallenge;
             // fixing oracle issues
-
-            
-
-            
-
-
 
             // ----------------------------------- DREAM THINGS ------------------------------------
             On.SSOracleSwarmer.Update += SSOracleSwarmer_Update;
@@ -105,35 +99,36 @@ namespace NCRApenpals
 
             On.DaddyGraphics.HunterDummy.ApplyPalette += HunterDummy_ApplyPalette;
             On.DaddyGraphics.HunterDummy.ctor += HunterDummy_ctor;
-            On.DaddyGraphics.HunterDummy.DrawSprites += HunterDummy_DrawSprites;
+            On.DaddyGraphics.HunterDummy.DrawSprites += insomniacTail;
             // insomniac long legs
 
             On.DaddyCorruption.Bulb.ApplyPalette += Bulb_ApplyPalette;
             On.DaddyCorruption.Update += DaddyCorruption_Update;
             // wall-corruption
 
-            On.RoomCamera.MoveCamera_Room_int += RoomCamera_MoveCamera_Room_int;
+            On.RoomCamera.MoveCamera_Room_int += HeatwavesRUs;
+            // adds heat wave to all rooms
 
             //------------------------------------ REAL THINGS ------------------------------------
             // omg so real
 
-            On.GlobalRain.DeathRain.NextDeathRainMode += DeathRain_NextDeathRainMode;
+            On.GlobalRain.DeathRain.NextDeathRainMode += InsomniacDeathrainSwitch;
             On.GlobalRain.DeathRain.DeathRainUpdate += DeathRain_DeathRainUpdate;
             // rain does not instakill and instead cycles back around to the precycle.
 
             On.RainCycle.ctor += RainCycle_ctor;
             // every cycle has a precycle
 
-            On.RoomCamera.UpdateDayNightPalette += RoomCamera_UpdateDayNightPalette;
+            On.RoomCamera.UpdateDayNightPalette += InsomniacNighttimePalette;
             On.RoomCamera.Update += RoomCamera_Update;
             // night cycles
 
-            On.RoomCamera.ApplyPalette += RoomCamera_ApplyPalette;
-            On.RainWorld.PostModsInit += RainWorld_PostModsInit;
+            On.RoomCamera.ApplyPalette += ApplyGrayscaleGrab;
+            On.RainWorld.PostModsInit += TriggerShaderLoad;
             // constant grayscale shaders
         }
 
-        private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
+        private void TriggerShaderLoad(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
             orig(self);
             LoadShaders(self);
@@ -177,7 +172,7 @@ namespace NCRApenpals
             }
         }
 
-        private void RoomCamera_ApplyPalette(On.RoomCamera.orig_ApplyPalette orig, RoomCamera self)
+        private void ApplyGrayscaleGrab(On.RoomCamera.orig_ApplyPalette orig, RoomCamera self)
         {
             if (self.room != null &&
                 self.room.game.session.characterStats.name.value == "NCRAreal")
@@ -374,17 +369,25 @@ namespace NCRApenpals
             if (world.game.session is StoryGameSession && world.game.session.characterStats.name.value == "NCRAreal" &&
                 !self.challengeForcedPrecycle)
             {
+                UnityEngine.Debug.Log("Loading forced precycle");
+
                 self.maxPreTimer = (int)UnityEngine.Random.Range(4800f, 12000f);
                 self.preTimer = self.maxPreTimer;
-                self.preCycleRainPulse_WaveA = 0f;
-                self.preCycleRainPulse_WaveB = 0f;
-                self.preCycleRainPulse_WaveC = 1.5707964f;
-                world.game.globalRain.preCycleRainPulse_Scale = 1f;
+
+                self.preCycleRainPulse_WaveA = UnityEngine.Random.Range(0f, 2f);
+                self.preCycleRainPulse_WaveB = UnityEngine.Random.Range(0f, 2f);
+                self.preCycleRainPulse_WaveC = UnityEngine.Random.Range(1f, 4f);
+
+                world.game.globalRain.preCycleRainPulse_Scale = UnityEngine.Random.Range(0.5f, 2f);
+                UnityEngine.Debug.Log("Precycle created. Values: WaveA " + self.preCycleRainPulse_WaveA + ", WaveB " +
+                    self.preCycleRainPulse_WaveB + ", WaveC " + self.preCycleRainPulse_WaveC + ", RainPulseScale " +
+                    world.game.globalRain.preCycleRainPulse_Scale);
+
                 self.challengeForcedPrecycle = true;
             }
         }
 
-        private void DeathRain_NextDeathRainMode(On.GlobalRain.DeathRain.orig_NextDeathRainMode orig, GlobalRain.DeathRain self)
+        private void InsomniacDeathrainSwitch(On.GlobalRain.DeathRain.orig_NextDeathRainMode orig, GlobalRain.DeathRain self)
         {
             if (self.globalRain.game.session.characterStats.name.value == "NCRAreal" && self.globalRain.game.FirstAlivePlayer.realizedCreature != null)
             {
@@ -398,9 +401,6 @@ namespace NCRApenpals
                 if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.None && UnityEngine.Random.value < 0.7f &&
                     !(self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
                 {
-                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().InsomniaHalfCycles++;
-                    // adds one to insomniacycles
-
                     if (UnityEngine.Random.value < 0.7f)
                     {
                         self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.AlternateBuildUp;
@@ -410,22 +410,11 @@ namespace NCRApenpals
                         self.deathRainMode = MoreSlugcatsEnums.DeathRainMode.Pulses;
                     }
                 }
-                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp &&
-                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
-                {
-                    self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm;
-                }
-                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeABuildUp &&
-                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
-                {
-                    self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm;
-                }
                 else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.AlternateBuildUp &&
                     !(self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
                 {
                     self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.GradeAPlateu;
                 }
-
                 else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeAPlateu &&
                     !(self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
                 {
@@ -436,6 +425,7 @@ namespace NCRApenpals
                 {
                     self.deathRainMode = MoreSlugcatsEnums.DeathRainMode.Pulses;
                 }
+                // standard direction deathrain. the rain will always end up at pulses.
 
 
                 else if (self.deathRainMode == MoreSlugcatsEnums.DeathRainMode.Pulses)
@@ -451,11 +441,31 @@ namespace NCRApenpals
 
 
                     UnityEngine.Debug.Log("Insomnia cycle triggered! Swapping rain buildup");
-                    UnityEngine.Debug.Log("Insomnia cycle count:" + (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().InsomniaHalfCycles);
-                    UnityEngine.Debug.Log("Insomnia cycle math:" + ((self.globalRain.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles / 2) % 1));
+                    UnityEngine.Debug.Log("Insomnia cycle count: " +
+                        (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().InsomniaHalfCycles);
+                    UnityEngine.Debug.Log("Insomnia cycle math: " +
+                        ((self.globalRain.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles / 2) % 1) + ". This should ALWAYS be a" +
+                        "full number and never be a decimal.");
                     (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir = true;
-                }
+                    self.globalRain.game.world.rainCycle.challengeForcedPrecycle = false;
 
+                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().InsomniaHalfCycles++;
+                    // adds one to insomniacycles
+                }
+                // rain cycle swaps direction.
+
+
+                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeBBuildUp &&
+                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                {
+                    self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm;
+                }
+                else if (self.deathRainMode == GlobalRain.DeathRain.DeathRainMode.GradeABuildUp &&
+                    (self.globalRain.game.FirstAlivePlayer.realizedCreature as Player).GetRealCat().swapRainDir)
+                {
+                    self.deathRainMode = GlobalRain.DeathRain.DeathRainMode.CalmBeforeStorm;
+                }
+                // reversed rain cycle. these should probably be replaced by the inverse for a smooth transition in the future.
 
                 else
                 {
@@ -464,10 +474,13 @@ namespace NCRApenpals
                     {
                         entry = ExtEnum<GlobalRain.DeathRain.DeathRainMode>.values.GetEntry(self.deathRainMode.Index - 1);
                         // if the direction of the rain is swapped, then go backwards.
+                        UnityEngine.Debug.Log("Insomnia rain cycle reversing to: " + entry);
+
                     }
                     else
                     {
                         entry = ExtEnum<GlobalRain.DeathRain.DeathRainMode>.values.GetEntry(self.deathRainMode.Index + 1);
+                        UnityEngine.Debug.Log("Insomnia rain cycle proceeding to: " + entry);
                     }
 
 
@@ -541,7 +554,7 @@ namespace NCRApenpals
         }
 
 
-        private void RoomCamera_UpdateDayNightPalette(On.RoomCamera.orig_UpdateDayNightPalette orig, RoomCamera self)
+        private void InsomniacNighttimePalette(On.RoomCamera.orig_UpdateDayNightPalette orig, RoomCamera self)
         {
             if (self.room != null && self.game.session.characterStats.name.value == "NCRAreal" && self.game.FirstRealizedPlayer != null &&
                 self.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles != 0 &&
@@ -551,6 +564,7 @@ namespace NCRApenpals
                 // checks to make sure insomniahalfcycles divided by 2 is a whole number
                 // aka: every even cycle is daytime, every uneven cycle is nighttime
 
+                UnityEngine.Debug.Log("Updating daynight cycle due to either current time being night or the cycle running out of time.");
                 float num = 1320f;
                 float num2 = 1.47f;
                 float num3 = 1.92f;
@@ -609,6 +623,7 @@ namespace NCRApenpals
                     self.paletteBlend = self.effect_dayNight * 0.99f;
                     self.ApplyFade();
                 }
+
                 self.dayNightNeedsRefresh = false;
             }
             else
@@ -617,10 +632,10 @@ namespace NCRApenpals
             }
         }
 
-        private void RoomCamera_MoveCamera_Room_int(On.RoomCamera.orig_MoveCamera_Room_int orig, RoomCamera self, Room newRoom, int camPos)
+        private void HeatwavesRUs(On.RoomCamera.orig_MoveCamera_Room_int orig, RoomCamera self, Room newRoom, int camPos)
         {
             orig(self, newRoom, camPos);
-            if (newRoom.roomSettings.GetEffectAmount(RoomSettings.RoomEffect.Type.HeatWave) == 0f && newRoom != null &&
+            if (newRoom.roomSettings.GetEffectAmount(RoomSettings.RoomEffect.Type.HeatWave) < 0.5f && newRoom != null &&
                 self.game.session.characterStats.name.value == "NCRAdream")
             {
                 self.levelGraphic.shader = self.game.rainWorld.Shaders["LevelHeat"];
@@ -629,7 +644,7 @@ namespace NCRApenpals
             }
         }
 
-        private void SSOracleMeetWhite_Update(On.SSOracleBehavior.SSOracleMeetWhite.orig_Update orig, SSOracleBehavior.SSOracleMeetWhite self)
+        private void moonstopcrashingthegamechallenge(On.SSOracleBehavior.SSOracleMeetWhite.orig_Update orig, SSOracleBehavior.SSOracleMeetWhite self)
         {
             if ((self.player.GetDreamCat().DreamActive || self.player.GetRealCat().RealActive) && self.player != null &&
                 self != null)
@@ -956,7 +971,7 @@ namespace NCRApenpals
             }
         }
 
-        private void HunterDummy_DrawSprites(On.DaddyGraphics.HunterDummy.orig_DrawSprites orig, DaddyGraphics.HunterDummy self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        private void insomniacTail(On.DaddyGraphics.HunterDummy.orig_DrawSprites orig, DaddyGraphics.HunterDummy self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             if (self.owner.daddy.room != null && self != null && self.owner != null && self.owner.daddy != null &&
                 self.owner.daddy.room.game.session.characterStats.name.value == "NCRAdream")
@@ -1561,7 +1576,7 @@ namespace NCRApenpals
             }
         }
 
-        private void RegionGate_customKarmaGateRequirements(On.RegionGate.orig_customKarmaGateRequirements orig, RegionGate self)
+        private void mycitynow(On.RegionGate.orig_customKarmaGateRequirements orig, RegionGate self)
         {
             if (self.room.game.session.characterStats.name.value == "NCRAreal")
             {
@@ -1661,7 +1676,7 @@ namespace NCRApenpals
             }
         }
 
-        private void PlayerGraphics_ctor(On.PlayerGraphics.orig_ctor orig, PlayerGraphics self, PhysicalObject ow)
+        private void fonkytailtime(On.PlayerGraphics.orig_ctor orig, PlayerGraphics self, PhysicalObject ow)
         {
             orig(self, ow);
             if ((self.owner as Player).GetDreamCat().IsDream)
@@ -1671,6 +1686,10 @@ namespace NCRApenpals
                 self.tail[2] = new TailSegment(self, 4f, 7f, self.tail[1], 0.85f, 0.4f, 0.5f, true);
                 self.tail[3] = new TailSegment(self, 9.5f, 8f, self.tail[2], 0.92f, 0.4f, 0.5f, true);
                 // this gives dream its signature tail curl. in all honesty im not sure WHY it does, but hey
+
+
+                // self.tail[value] = tailsegment(owner, radius, connectionradius, connectedtailsegment[value],
+                // surfacefriction, airfriction, affect on previous segment, pullinpreviousposition)
             }
             else if ((self.owner as Player).GetRealCat().IsReal)
             {
@@ -1678,10 +1697,11 @@ namespace NCRApenpals
                 self.tail[1] = new TailSegment(self, 4f, 7f, self.tail[0], 0.8f, 1f, 0.6f, true);
                 self.tail[2] = new TailSegment(self, 2.5f, 4.5f, self.tail[1], 0.82f, 1f, 0.5f, true);
                 self.tail[3] = new TailSegment(self, 1f, 1f, self.tail[2], 1f, 1f, 0.5f, true);
-                // self.tail[value] = tailsegment(owner, radius?, connectionradius?, connectedtailsegment[value],
-                // surfacefriction, airfriction, affect on previous segment, pullinpreviousposition)
-
                 // this makes reals tail appear slightly stumpier (despite it actually being the same length)
+
+
+                // self.tail[value] = tailsegment(owner, radius, connectionradius, connectedtailsegment[value],
+                // surfacefriction, airfriction, affect on previous segment, pullinpreviousposition)
             }
         }
 
@@ -1703,12 +1723,35 @@ namespace NCRApenpals
 
         private void DangleFruit_ApplyPalette(On.DangleFruit.orig_ApplyPalette orig, DangleFruit self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
-            if (self.room.game.session.characterStats.name.value == "NCRAdream" && !self.slatedForDeletetion)
+            if (!self.slatedForDeletetion && self != null && self.room != null &&
+                self.room.game.session.characterStats.name.value == "NCRAdream")
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
                 sLeaser.sprites[0].color = palette.blackColor;
                 self.color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), palette.blackColor, self.darkness);
+                UnityEngine.Random.state = state;
+            }
+            else if (self.room.game.FirstRealizedPlayer != null && !self.slatedForDeletetion && self != null && self.room != null &&
+                self.room.game.FirstRealizedPlayer.slugcatStats.name.value == "NCRAdream")
+            {
+                // if the first realized player is NCRAdream
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
+
+                int rand = UnityEngine.Random.Range(1, 10);
+
+                if (rand == 10)
+                {
+                    sLeaser.sprites[0].color = palette.blackColor;
+                    self.color = Color.Lerp(new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), palette.blackColor, self.darkness);
+                }
+                else
+                {
+                    orig(self, sLeaser, rCam, palette);
+                }
+
+
                 UnityEngine.Random.state = state;
             }
             else orig(self, sLeaser, rCam, palette);
@@ -1722,13 +1765,15 @@ namespace NCRApenpals
             {
                 UnityEngine.Random.State state = UnityEngine.Random.state;
                 UnityEngine.Random.InitState(self.abstractPhysicalObject.ID.RandomSeed);
-                self.lightSource = new LightSource(self.firstChunk.pos, false, new UnityEngine.Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), self);
+
+                self.lightSource = new LightSource(self.firstChunk.pos, false, new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value), self);
                 self.room.AddObject(self.lightSource);
+
                 UnityEngine.Random.state = state;
             }
             else
             {
-                orig.Invoke(self, eu);
+                orig(self, eu);
             }
         }
 
@@ -1922,6 +1967,7 @@ namespace NCRApenpals
             else if ((self.GetDreamCat().IsDream || self.GetDreamCat().DreamActive) &&
                 self.room.gravity == 0f && !self.submerged)
             {
+                // if the room gravity is 
                 self.customPlayerGravity = 1f;
             }
             else if (self.GetRealCat().IsReal)
@@ -1936,12 +1982,20 @@ namespace NCRApenpals
             // ---------------------------------------------------- DREAM ----------------------------------------------------
             if (self.slugcatStats.name.value == "NCRAdream")
             {
-                self.GetDreamCat().IsDream = true;
+                if (!self.GetDreamCat().IsDream)
+                {
+                    self.GetDreamCat().IsDream = true;
+                    UnityEngine.Debug.Log("Dreamcat selected. Enabled IsDream");
+                }
             }
             // ---------------------------------------------------- DREAM STORY ----------------------------------------------------
             if (self.room.game.session.characterStats.name.value == "NCRAdream")
             {
-                self.GetDreamCat().DreamActive = true;
+                if (!self.GetDreamCat().DreamActive)
+                {
+                    self.GetDreamCat().DreamActive = true;
+                    UnityEngine.Debug.Log("Dreamcat campaign selected. Enabled DreamActive");
+                }
             }
 
 
@@ -1949,12 +2003,20 @@ namespace NCRApenpals
             // ---------------------------------------------------- REAL ----------------------------------------------------
             if (self.slugcatStats.name.value == "NCRAreal")
             {
-                self.GetRealCat().IsReal = true;
+                if (!self.GetRealCat().IsReal)
+                {
+                    self.GetRealCat().IsReal = true;
+                    UnityEngine.Debug.Log("Realcat selected. Enabled IsReal");
+                }
             }
             // ---------------------------------------------------- REAL STORY ----------------------------------------------------
             if (self.room.game.session.characterStats.name.value == "NCRAreal")
             {
-                self.GetRealCat().RealActive = true;
+                if (!self.GetRealCat().RealActive)
+                {
+                    self.GetRealCat().RealActive = true;
+                    UnityEngine.Debug.Log("Realcat campaign selected. Enabled RealActive");
+                }
             }
         }
 
@@ -1984,11 +2046,12 @@ namespace NCRApenpals
         private void SSOracleSwarmer_Update(On.SSOracleSwarmer.orig_Update orig, SSOracleSwarmer self, bool eu)
         {
             orig(self, eu);
-            if (self.room.readyForAI && self != null && self.room != null &&
+            if (self.room.readyForAI && self != null && self.room != null && self.affectedByGravity != 0f &&
                 self.room.game.session.characterStats.name.value == "NCRAdream")
             {
                 self.affectedByGravity = 0f;
                 // makes it so oracleswarmers are never affected by gravity, regardless of the actual room gravity
+                // self.affectedByGravity != 0f is necessary so as to not have it applying repeatedly and slowing the game down drastically...
             }
         }
 
