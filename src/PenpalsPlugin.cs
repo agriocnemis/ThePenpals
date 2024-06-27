@@ -651,6 +651,7 @@ namespace NCRApenpals
         {
             orig(self, newRoom, camPos);
             if (newRoom.roomSettings.GetEffectAmount(RoomSettings.RoomEffect.Type.HeatWave) < 0.5f && newRoom != null &&
+                self.levelGraphic.shader != self.game.rainWorld.Shaders["LevelHeat"] &&
                 self.game.session.characterStats.name.value == "NCRAdream")
             {
                 self.levelGraphic.shader = self.game.rainWorld.Shaders["LevelHeat"];
