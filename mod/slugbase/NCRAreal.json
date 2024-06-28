@@ -20,12 +20,12 @@
 		"weight": 1.1,
 		"walk_speed": 1.1,
 		"throw_skill": [1, 2],
-		"lung_capacity": [1.2, 1.5],
+		"lung_capacity": [1.4, 1.6],
 		"loudness": 1.1,
 		"cycle_length_max": 6.5,
 		"cycle_length_min": 5.5,
 		"karma": 0,
-		"karma_cap": 0,
+		"karma_cap": 4,
 		
 		"alignments": {
 			"Lizards": {

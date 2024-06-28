@@ -7,8 +7,7 @@ using System.Reflection;
 using System;
 using CoralBrain;
 using System.IO;
-using Menu;
-
+using Unity.Mathematics;
 
 namespace NCRApenpals
 {
@@ -17,9 +16,6 @@ namespace NCRApenpals
     {
         private const string MOD_ID = "neoncityrain-agriocnemis.penpals";
         public delegate Color orig_OverseerMainColor(global::OverseerGraphics self);
-        public static SlugcatStats.Name NCRAdream;
-        public static SlugcatStats.Name NCRAreal;
-
 
         public void OnEnable()
         {
@@ -73,7 +69,7 @@ namespace NCRApenpals
             On.CentipedeGraphics.ApplyPalette += CentipedeGraphics_ApplyPalette;
             On.CentipedeGraphics.ctor += CentipedeGraphics_ctor;
             On.BigSpiderGraphics.ApplyPalette += BigSpiderGraphics_ApplyPalette;
-            // making dream colourful and real grayscale
+            // making dream colourful
             //testing atm if can be simplified -Y
             // it cant :') - A
             Hook fancyoverseers = new Hook(typeof(global::OverseerGraphics).GetProperty("MainColor", BindingFlags.Instance |
@@ -98,6 +94,7 @@ namespace NCRApenpals
             On.DaddyGraphics.ApplyPalette += DaddyGraphics_ApplyPalette;
             On.DaddyGraphics.RenderSlits += DaddyGraphics_RenderSlits;
             On.DaddyRipple.DrawSprites += DaddyRipple_DrawSprites;
+            On.ScavengerGraphics.GenerateColors += ScavengerGraphics_GenerateColors;
             // longlegs code
 
             On.DaddyGraphics.HunterDummy.ApplyPalette += HunterDummy_ApplyPalette;
@@ -112,6 +109,13 @@ namespace NCRApenpals
             On.RoomCamera.MoveCamera_Room_int += HeatwavesRUs;
             // adds heat wave to all rooms
 
+
+            On.VultureGraphics.ctor += VultureGraphics_ctor;
+            On.VultureFeather.CurrentColor += VultureFeather_CurrentColor;
+            On.VultureGraphics.InitiateSprites += VultureGraphics_InitiateSprites;
+            On.Smoke.NewVultureSmoke.NewVultureSmokeSegment.VultureSmokeColor += NewVultureSmokeSegment_VultureSmokeColor;
+            // vulture shenanigans
+
             //------------------------------------ REAL THINGS ------------------------------------
             // omg so real
 
@@ -122,13 +126,481 @@ namespace NCRApenpals
             On.RainCycle.ctor += RainCycle_ctor;
             // every cycle has a precycle
 
-            On.RoomCamera.UpdateDayNightPalette += InsomniacNighttimePalette;
+            // On.RoomCamera.UpdateDayNightPalette += InsomniacNighttimePalette;
             On.RoomCamera.Update += RoomCamera_Update;
             // night cycles
 
             On.RoomCamera.ApplyPalette += ApplyGrayscaleGrab;
             On.RainWorld.PostModsInit += TriggerShaderLoad;
             // constant grayscale shaders
+
+            On.Player.Grabability += Player_Grabability;
+            On.Player.HeavyCarry += Player_HeavyCarry;
+            // allows real to carry more and to carry
+        }
+
+        private void ScavengerGraphics_GenerateColors(On.ScavengerGraphics.orig_GenerateColors orig, ScavengerGraphics self)
+        {
+            if (self != null && self.scavenger != null && self.scavenger.room != null)
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.scavenger.abstractCreature.ID.RandomSeed);
+
+                if (self.scavenger.Elite)
+                {
+                    self.bodyColor = new HSLColor(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                }
+                else
+                {
+                    self.bodyColor = new HSLColor(UnityEngine.Random.value, Mathf.Lerp(0.05f, 1f, Mathf.Pow(UnityEngine.Random.value, 0.85f)),
+                    Mathf.Lerp(0.05f, 0.8f, UnityEngine.Random.value));
+                }
+                
+                self.bodyColorBlack = Custom.LerpMap((self.bodyColor.rgb.r + self.bodyColor.rgb.g + self.bodyColor.rgb.b)
+                    / 3f, 0.04f, 0.8f, 0.3f, 0.95f, 0.5f);
+                self.bodyColorBlack = Mathf.Lerp(self.bodyColorBlack, Mathf.Lerp(0.5f, 1f, UnityEngine.Random.value),
+                    UnityEngine.Random.value * UnityEngine.Random.value * UnityEngine.Random.value);
+                self.bodyColorBlack *= self.iVars.generalMelanin;
+
+                
+
+                float num3;
+                if (UnityEngine.Random.value < Custom.LerpMap(self.bodyColorBlack, 0.5f, 0.8f, 0.9f, 0.3f))
+                {
+                    num3 = UnityEngine.Random.value;
+                }
+                else
+                {
+                    num3 = ((UnityEngine.Random.value < 0.5f) ? Custom.Decimal(UnityEngine.Random.value + 0.5f) :
+                        Custom.Decimal(UnityEngine.Random.value + 0.5f)) + Mathf.Lerp(-1f, 1f, UnityEngine.Random.value) * 0.25f *
+                        Mathf.Pow(UnityEngine.Random.value, 2f);
+                    if (UnityEngine.Random.value < Mathf.Lerp(0.8f, 0.2f, UnityEngine.Random.value))
+                    {
+                        num3 = Mathf.Lerp(num3, 0.15f, UnityEngine.Random.value);
+                    }
+                    if (num3 > 1f)
+                    {
+                        num3 -= 1f;
+                    }
+                    else if (num3 < 0f)
+                    {
+                        num3 += 1f;
+                    }
+                }
+
+                self.headColor = new HSLColor(UnityEngine.Random.value, 1f, 0.05f + 0.15f * UnityEngine.Random.value);
+
+                if (self.headColor.lightness < 0.5f && UnityEngine.Random.value < 0.5)
+                {
+                    self.headColor.lightness = self.headColor.lightness * (0.5f + 0.5f * Mathf.InverseLerp(0.2f, 0.05f,
+                        Custom.DistanceBetweenZeroToOneFloats(self.bodyColor.hue, self.headColor.hue)));
+                }
+
+                if (self.headColor.lightness > self.bodyColor.lightness)
+                {
+                    if (UnityEngine.Random.value < 0.7f)
+                    {
+                        self.headColor = self.bodyColor;
+                    }
+                    else
+                    {
+                        self.headColor = new HSLColor(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    }
+                }
+
+                if (self.headColor.saturation < self.bodyColor.saturation * 0.75f)
+                {
+                    if (UnityEngine.Random.value < 0.5f)
+                    {
+                        self.headColor.hue = self.bodyColor.hue;
+                    }
+                    else
+                    {
+                        self.headColor.lightness = self.headColor.lightness * 0.25f;
+                    }
+                    self.headColor.saturation = self.bodyColor.saturation * 0.75f;
+                }
+
+                self.decorationColor = new HSLColor(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                self.eyeColor = new HSLColor(UnityEngine.Random.value, 1f, (UnityEngine.Random.value < 0.2f) ? (0.5f + UnityEngine.Random.value * 0.5f) : 0.5f);
+                
+                if (self.iVars.coloredPupils > 0)
+                {
+                    self.eyeColor.lightness = Mathf.Lerp(self.eyeColor.lightness, 1f, 0.3f);
+                }
+
+                if (self.headColor.lightness * (1f - self.headColorBlack) > self.eyeColor.lightness / 2f && (self.iVars.pupilSize == 0f
+                    || self.iVars.deepPupils))
+                {
+                    if (UnityEngine.Random.value < 0.1f)
+                    {
+                        self.eyeColor.lightness = UnityEngine.Random.value;
+                    }
+                    if (UnityEngine.Random.value > 0.4f)
+                    {
+                        self.eyeColor.lightness = self.eyeColor.lightness * 0.2f;
+                    }
+                    else if (UnityEngine.Random.value < 0.4f)
+                    {
+                        self.eyeColor.lightness = self.eyeColor.lightness / 0.2f;
+                    }
+                }
+
+
+                self.bellyColor = new HSLColor(UnityEngine.Random.value, self.bodyColor.saturation *
+                    Mathf.Lerp(1f, 0.5f, UnityEngine.Random.value), self.bodyColor.lightness + 0.05f + 0.3f * UnityEngine.Random.value);
+                
+                if (UnityEngine.Random.value < 0.02f)
+                {
+                    self.headColorBlack *= Mathf.Lerp(1f, 0.8f, UnityEngine.Random.value);
+                }
+                if (UnityEngine.Random.value < 0.03f)
+                {
+                    self.headColor.lightness = Mathf.Lerp(0.2f, 0.35f, UnityEngine.Random.value);
+                }
+                if (UnityEngine.Random.value < 0.02f)
+                {
+                    self.bellyColor.hue = Mathf.Lerp(self.bellyColor.hue, self.headColor.hue, Mathf.Pow(UnityEngine.Random.value, 0.5f));
+                }
+                if (UnityEngine.Random.value < 0.01f)
+                {
+                    self.bellyColor.hue = UnityEngine.Random.value;
+                }
+
+                UnityEngine.Random.state = state;
+            }
+            else
+            {
+                orig(self);
+            }
+        }
+
+        private Color NewVultureSmokeSegment_VultureSmokeColor(On.Smoke.NewVultureSmoke.NewVultureSmokeSegment.orig_VultureSmokeColor orig, Smoke.NewVultureSmoke.NewVultureSmokeSegment self, float x)
+        {
+            if (self != null && !self.slatedForDeletetion && self.room != null &&
+                self.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                int initstate = (int)x * 1000;
+                UnityEngine.Random.InitState(initstate);
+
+                Color rgb = HSLColor.Lerp(new HSLColor(UnityEngine.Random.value, 1f, 0.9f),
+                    new HSLColor(UnityEngine.Random.value, 0.5f, 0.15f), x).rgb;
+                Color b = Color.Lerp(new HSLColor(UnityEngine.Random.value, 0.5f, 0.8f).rgb,
+                    new HSLColor(UnityEngine.Random.value, 1f, 0.15f).rgb, x);
+
+                UnityEngine.Random.state = state;
+                return Color.Lerp(rgb, b, 0.3f);
+            }
+            else
+            {
+                return (orig(self, x));
+            }
+        }
+
+        private void VultureGraphics_InitiateSprites(On.VultureGraphics.orig_InitiateSprites orig, VultureGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        {
+            if (self != null && self.vulture != null && self.vulture.room != null && !self.owner.slatedForDeletetion &&
+                self.vulture.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.vulture.abstractCreature.ID.RandomSeed);
+
+
+                sLeaser.sprites = new FSprite[self.TotalSprites];
+                if (self.vulture.kingTusks != null)
+                {
+                    self.vulture.kingTusks.InitiateSprites(self, sLeaser, rCam);
+                }
+                if (self.IsMiros)
+                {
+                    sLeaser.sprites[self.LaserSprite()] = new CustomFSprite("Futile_White");
+                    sLeaser.sprites[self.LaserSprite()].shader = rCam.game.rainWorld.Shaders["HologramBehindTerrain"];
+                }
+                for (int i = 0; i < 2; i++)
+                {
+                    sLeaser.sprites[self.BackShieldSprite(i)] = new FSprite("KrakenShield0", true);
+                    sLeaser.sprites[self.FrontShieldSprite(i)] = new FSprite("KrakenShield0", true);
+                    sLeaser.sprites[self.AppendageSprite(i)] = TriangleMesh.MakeLongMesh(self.appendages[i].Length, false, true);
+                    
+                    if (!self.IsMiros)
+                    {
+                        sLeaser.sprites[self.TuskSprite(i)] = new FSprite("pixel", true);
+                        sLeaser.sprites[self.TuskSprite(i)].anchorY = 1f;
+                    }
+                    else
+                    {
+                        sLeaser.sprites[self.BackShieldSprite(i)].shader = rCam.game.rainWorld.Shaders["HologramBehindTerrain"];
+                        sLeaser.sprites[self.FrontShieldSprite(i)].shader = rCam.game.rainWorld.Shaders["HologramBehindTerrain"];
+                        sLeaser.sprites[self.AppendageSprite(i)].shader = rCam.game.rainWorld.Shaders["HologramBehindTerrain"];
+                    }
+
+
+                    if (i == 1)
+                    {
+                        sLeaser.sprites[self.BackShieldSprite(i)].scaleX = (self.IsKing ? -1.15f : -1f);
+                        sLeaser.sprites[self.FrontShieldSprite(i)].scaleX = (self.IsKing ? -1.15f : -1f);
+                    }
+                    else
+                    {
+                        sLeaser.sprites[self.BackShieldSprite(i)].scaleX = (self.IsKing ? 1.15f : 1f);
+                        sLeaser.sprites[self.FrontShieldSprite(i)].scaleX = (self.IsKing ? 1.15f : 1f);
+                    }
+
+                    sLeaser.sprites[self.BackShieldSprite(i)].anchorY = 1f;
+                    sLeaser.sprites[self.FrontShieldSprite(i)].anchorY = 1f;
+
+                    if (self.IsKing)
+                    {
+                        sLeaser.sprites[self.TubeSprite(i)] = TriangleMesh.MakeLongMesh(self.neckTubes.GetLength(1), false, false);
+                    }
+                }
+
+
+                for (int j = 0; j < self.vulture.tentacles.Length; j++)
+                {
+                    sLeaser.sprites[self.TentacleSprite(j)] = TriangleMesh.MakeLongMesh(self.vulture.tentacles[j].tChunks.Length, false, false);
+                    if (self.IsMiros)
+                    {
+                        sLeaser.sprites[self.TentacleSprite(j)].shader = rCam.game.rainWorld.Shaders["HologramBehindTerrain"];
+                    }
+                }
+                for (int k = 0; k < self.vulture.tentacles.Length; k++)
+                {
+                    for (int l = 0; l < self.feathersPerWing; l++)
+                    {
+                        sLeaser.sprites[self.FeatherColorSprite(k, l)] = new FSprite("MirosWingColor", true);
+                        sLeaser.sprites[self.FeatherColorSprite(k, l)].anchorY = (self.IsMiros ? 0.94f : 0.97f);
+
+                        if (self.IsMiros)
+                        {
+                            sLeaser.sprites[self.FeatherColorSprite(k, l)].shader = rCam.game.rainWorld.Shaders["HologramBehindTerrain"];
+                        }
+
+                        if (self.IsMiros && l == self.feathersPerWing - 1)
+                        {
+                            sLeaser.sprites[self.FeatherSprite(k, l)] = new FSprite("MirosClaw", true);
+                            sLeaser.sprites[self.FeatherSprite(k, l)].anchorY = 0.3f;
+                            sLeaser.sprites[self.FeatherSprite(k, l)].anchorX = 0f;
+                            sLeaser.sprites[self.FeatherSprite(k, l)].shader = rCam.game.rainWorld.Shaders["HologramBehindTerrain"];
+                        }
+                        else
+                        {
+
+                            sLeaser.sprites[self.FeatherSprite(k, l)] = new FSprite("MirosWingSolid", true);
+                            sLeaser.sprites[self.FeatherSprite(k, l)].anchorY = (self.IsMiros ? 0.94f : 0.97f);
+
+                        }
+                    }
+                }
+
+
+                if (self.IsMiros)
+                {
+                    for (int m = 0; m < 2; m++)
+                    {
+                        self.beak[m].InitiateSprites(sLeaser, rCam);
+                    }
+                }
+
+                sLeaser.sprites[self.BodySprite] = new FSprite("KrakenBody", true);
+                sLeaser.sprites[self.BodySprite].scale = (self.IsKing ? 1.2f : 1f);
+                sLeaser.sprites[self.NeckSprite] = TriangleMesh.MakeLongMesh(self.vulture.neck.tChunks.Length, false, false);
+                sLeaser.sprites[self.HeadSprite] = new FSprite("KrakenHead0", true);
+                sLeaser.sprites[self.EyesSprite] = new FSprite("Circle20", true);
+
+                if (self.IsMiros)
+                {
+                    sLeaser.sprites[self.EyesSprite].scale = 0.3f * self.eyeSize;
+                    self.eyeTrail.InitiateSprites(sLeaser, rCam);
+                }
+                
+                if (!self.IsMiros)
+                {
+                    sLeaser.sprites[self.MaskSprite] = new FSprite("KrakenMask0", true);
+                    if (self.IsKing)
+                    {
+                        sLeaser.sprites[self.MaskArrowSprite] = new FSprite("KrakenArrow0", true);
+                    }
+                }
+
+                UnityEngine.Random.state = state;
+                self.AddToContainer(sLeaser, rCam, null);
+            }
+            else
+            {
+                orig(self, sLeaser, rCam);
+            }
+        }
+
+        private Color VultureFeather_CurrentColor(On.VultureFeather.orig_CurrentColor orig, VultureFeather self)
+        {
+            if (self != null && self.kGraphics != null && self.kGraphics.owner != null && self.kGraphics.owner.room != null &&
+                self.kGraphics.owner.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.kGraphics.owner.abstractPhysicalObject.ID.RandomSeed);
+                   
+                if (self.kGraphics.vulture.IsMiros)
+                {
+                    Color rgb = HSLColor.Lerp(new HSLColor(UnityEngine.Random.value,
+                        Mathf.Lerp(UnityEngine.Random.value, 1f, self.saturationBonus),
+                        Mathf.Lerp(UnityEngine.Random.value, 1f, self.lightnessBonus)),
+                        new HSLColor(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value),
+                        Mathf.Cos(Mathf.Pow(self.wingPosition, 0.75f) * 3.1415927f)).rgb;
+
+                    rgb.a = Mathf.Max(new float[]
+                    {0.4f, self.forcedAlpha, Mathf.Lerp(0.4f, 0.8f, Mathf.Cos(Mathf.Pow(self.wingPosition, 1.7f) * 3.1415927f))}) *
+                    (self.extendedFac + self.wing.flyingMode) * 0.5f * (1f - UnityEngine.Random.value);
+
+                    if (self.kGraphics.vulture.isLaserActive())
+                    {
+                        rgb.a = UnityEngine.Random.value;
+                    }
+                    return rgb;
+                }
+
+
+                HSLColor colorB = new HSLColor(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                HSLColor colorA = new HSLColor(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+
+                if (self.kGraphics.albino)
+                {
+                    colorB.saturation = Mathf.Lerp(colorB.saturation, 1f, 0.2f);
+                    colorB.hue = 0f;
+                    colorB.lightness = Mathf.Lerp(colorB.saturation, 0.2f, 0.8f);
+                    colorA.saturation = 0.8f;
+                    colorA.lightness = 0.6f;
+                }
+
+                Color rgb2 = HSLColor.Lerp(new HSLColor(colorB.hue, Mathf.Lerp(colorB.saturation, 1f, self.saturationBonus),
+                    Mathf.Lerp(colorB.lightness, 1f, self.lightnessBonus)),
+                    colorA, Mathf.Cos(Mathf.Pow(self.wingPosition, 0.75f) * 3.1415927f)).rgb;
+
+                rgb2.a = Mathf.Max(self.forcedAlpha, Mathf.Lerp(0.2f, 0.6f, Mathf.Cos(Mathf.Pow(self.wingPosition, 1.7f) * 3.1415927f))) *
+                    (self.extendedFac + self.wing.flyingMode) * 0.5f * (1f - self.brokenColor);
+
+
+                UnityEngine.Random.state = state;
+
+                return rgb2;
+            }
+            else
+            {
+                return orig(self);
+            }
+        }
+
+        private void VultureGraphics_ctor(On.VultureGraphics.orig_ctor orig, VultureGraphics self, Vulture ow)
+        {
+            orig(self, ow);
+            if (self != null && self.vulture != null && self.vulture.room != null &&
+                self.vulture.room.game.session.characterStats.name.value == "NCRAdream")
+            {
+                UnityEngine.Random.State state = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(self.vulture.abstractCreature.ID.RandomSeed);
+
+                self.ColorB = new HSLColor(Mathf.Lerp(0f, 10f, UnityEngine.Random.value), Mathf.Lerp(0.2f, 1f, UnityEngine.Random.value),
+                        Mathf.Lerp(0.1f, 1f, UnityEngine.Random.value));
+                self.ColorA = new HSLColor(Mathf.Lerp(0f, 10f, UnityEngine.Random.value), Mathf.Lerp(0.2f, 1f, UnityEngine.Random.value),
+                    Mathf.Lerp(0.1f, 1f, UnityEngine.Random.value));
+
+                self.eyeCol = Custom.HSL2RGB(Mathf.Lerp(0f, 1f, UnityEngine.Random.value), UnityEngine.Random.value, UnityEngine.Random.value);
+
+                if (self.IsKing)
+                {
+                    self.laserColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    self.lastLaserColor = self.laserColor;
+                }
+
+                else if (self.IsMiros)
+                {
+                    self.laserColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+                    self.lastLaserColor = self.laserColor;
+
+                    self.eyeSize = UnityEngine.Random.value;
+                    self.eyeTrail = new VultureGraphics.EyeTrail(self,self.EyeTrailSprite());
+                }
+
+                UnityEngine.Random.state = state;
+            }
+        }
+
+        private bool Player_HeavyCarry(On.Player.orig_HeavyCarry orig, Player self, PhysicalObject obj)
+        {
+            if (self.Grabability(obj) != Player.ObjectGrabability.TwoHands && obj.TotalMass <= self.TotalMass * 0.7f &&
+                self.GetRealCat().IsReal)
+            {
+                if (ModManager.CoopAvailable)
+                {
+                    Player player = obj as Player;
+                    if (player != null)
+                    {
+                        return !player.isSlugpup || !player.GetDreamCat().IsDream;
+                    }
+                }
+                return false;
+            }
+            return orig(self, obj);
+        }
+
+        private Player.ObjectGrabability Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
+        {
+            if (self.slugcatStats.name.value == "NCRAreal")
+            {
+                if (obj is Weapon && obj is Spear)
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
+                if (obj is Snail)
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
+                if (obj is Cicada && !(obj as Cicada).Charging && ((obj as Cicada).cantPickUpCounter == 0 ||
+                    (obj as Cicada).cantPickUpPlayer != self))
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
+                if (obj is JetFish && (obj as JetFish).grabable > 0)
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
+                if (obj is LanternMouse)
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
+                if (obj is EggBug)
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
+
+                if (obj is Creature && !(obj as Creature).Template.smallCreature && ((obj as Creature).dead ||
+                    (SlugcatStats.SlugcatCanMaul(self.SlugCatClass) && self.dontGrabStuff < 1 && obj != self &&
+                    !(obj as Creature).Consious)))
+                {
+                    return Player.ObjectGrabability.TwoHands;
+                }
+
+
+                if (obj is Yeek)
+                {
+                    return Player.ObjectGrabability.OneHand;
+                }
+
+
+
+                if (obj is Leech)
+                {
+                    (obj as Leech).Die();
+                    return Player.ObjectGrabability.OneHand;
+                }
+                if (obj is Spider)
+                {
+                    (obj as Spider).Die();
+                    return Player.ObjectGrabability.OneHand;
+                }
+            }
+            return (orig(self, obj));
         }
 
         private void TriggerShaderLoad(On.RainWorld.orig_PostModsInit orig, RainWorld self)
@@ -271,14 +743,9 @@ namespace NCRApenpals
             if (self.room != null && self != null &&
                 self.room.game.session.characterStats.name.value == "NCRAreal")
             {
-                if (self.currentPalette.darkness < 0.2f)
-                {
-                    self.currentPalette.darkness = 0.2f;
-                }
-                if (self.effect_dayNight !=  1f)
+                if (self.effect_dayNight != 1f)
                 {
                     self.effect_dayNight = 1f;
-                    self.UpdateDayNightPalette();
                 }
             }
         }
@@ -572,9 +1039,12 @@ namespace NCRApenpals
         private void InsomniacNighttimePalette(On.RoomCamera.orig_UpdateDayNightPalette orig, RoomCamera self)
         {
             if (self.room != null && self.game.session.characterStats.name.value == "NCRAreal" && self.game.FirstRealizedPlayer != null &&
-                self.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles != 0 &&
+
                 (self.room.world.rainCycle.timer >= self.room.world.rainCycle.cycleLength ||
-                (self.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles / 2) % 1 != 0))
+
+                (self.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles / 2) % 1 != 0 ||
+                
+                self.game.FirstRealizedPlayer.GetRealCat().InsomniaHalfCycles == 0))
             {
                 // checks to make sure insomniahalfcycles divided by 2 is a whole number
                 // aka: every even cycle is daytime, every uneven cycle is nighttime
@@ -625,7 +1095,7 @@ namespace NCRApenpals
                 else if ((float)self.room.world.rainCycle.dayNightCounter == num * num3)
                 {
                     self.ChangeBothPalettes(self.room.world.rainCycle.duskPalette, self.room.world.rainCycle.nightPalette,
-                        self.effect_dayNight * 0.99f);
+                        0.99f);
                 }
                 else if ((float)self.room.world.rainCycle.dayNightCounter > num * num3)
                 {
@@ -633,9 +1103,9 @@ namespace NCRApenpals
                         self.paletteA != self.room.world.rainCycle.duskPalette || self.dayNightNeedsRefresh)
                     {
                         self.ChangeBothPalettes(self.room.world.rainCycle.duskPalette, self.room.world.rainCycle.nightPalette,
-                            self.effect_dayNight);
+                            1f);
                     }
-                    self.paletteBlend = self.effect_dayNight * 0.99f;
+                    self.paletteBlend = 0.99f;
                     self.ApplyFade();
                 }
 
@@ -2024,10 +2494,6 @@ namespace NCRApenpals
                 {
                     self.GetRealCat().IsReal = true;
                     UnityEngine.Debug.Log("Realcat selected. Enabled IsReal");
-                    if (self.slugcatStats.name == NCRAreal)
-                    {
-                        UnityEngine.Debug.Log("NCRAReal name correct!");
-                    }
                 }
             }
             // ---------------------------------------------------- REAL STORY ----------------------------------------------------

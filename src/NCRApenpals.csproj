@@ -54,8 +54,8 @@
         <Reference Include="..\lib\UnityEngine.dll">
           <Private>false</Private>
         </Reference>
-        <Reference Include="Rewired_Core">
-          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Rewired_Core.dll</HintPath>
+        <Reference Include="Unity.Mathematics">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Unity.Mathematics.dll</HintPath>
         </Reference>
     </ItemGroup>
     
